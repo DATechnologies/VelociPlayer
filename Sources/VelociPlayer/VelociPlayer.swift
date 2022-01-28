@@ -40,7 +40,7 @@ public class VelociPlayer: AVPlayer {
         }
     }
     
-    private(set) var audioUrl: URL?
+    public private(set) var audioUrl: URL?
     
     var timeObserver: Any?
     var timeControlSubscriber: AnyCancellable?
@@ -56,7 +56,6 @@ public class VelociPlayer: AVPlayer {
     }
     
     // MARK: - Initialization
-    
     public override init() {
         super.init()
     }
