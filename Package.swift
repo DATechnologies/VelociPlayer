@@ -5,6 +5,14 @@ import PackageDescription
 
 let package = Package(
     name: "VelociPlayer",
+    platforms: [
+        .iOS(.v13),
+        .macOS(.v10_15),
+        .macCatalyst(.v13),
+        .watchOS(.v6),
+        .tvOS(.v13),
+        .driverKit(.v19)
+    ],
     products: [
         // Products define the executables and libraries a package produces, and make them visible to other packages.
         .library(
