@@ -109,6 +109,7 @@ public class VelociPlayer: AVPlayer {
         }
         timeControlSubscriber?.cancel()
         playEndedSubscriber?.cancel()
+        rateSubscriber?.cancel()
         
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
     }
