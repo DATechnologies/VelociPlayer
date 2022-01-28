@@ -40,6 +40,8 @@ public class VelociPlayer: AVPlayer {
         }
     }
     
+    private(set) var audioUrl: URL?
+    
     var timeObserver: Any?
     var timeControlSubscriber: AnyCancellable?
     var playEndedSubscriber: AnyCancellable?
@@ -67,6 +69,7 @@ public class VelociPlayer: AVPlayer {
     /// Start playing audio from a specified URL.
     /// - Parameter url: The URL containing an audio file to play.
     public func beginPlayback(from url: URL) {
+        self.audioUrl = url
         let playerItem = AVPlayerItem(url: url)
         self.replaceCurrentItem(with: playerItem)
         volume = 1.0
