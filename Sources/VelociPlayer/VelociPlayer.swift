@@ -127,7 +127,7 @@ public class VelociPlayer: AVPlayer {
     }
     
     func startObservingPlayer() {
-        timeObserver = self.addPeriodicTimeObserver(forInterval: CMTime(seconds: (1/30), preferredTimescale: 10000), queue: .main) { [weak self] time in
+        timeObserver = self.addPeriodicTimeObserver(forInterval: CMTime(seconds: 0.1, preferredTimescale: 10000), queue: .main) { [weak self] time in
             self?.onPlayerTimeChanged(time: time)
         }
         
