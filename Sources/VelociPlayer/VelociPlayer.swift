@@ -83,6 +83,8 @@ public class VelociPlayer: AVPlayer {
             print("Error syncing with system player: \(error)")
         }
         
+        self.nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = playerItem.duration
+        
         self.play()
     }
     
@@ -114,13 +116,15 @@ public class VelociPlayer: AVPlayer {
     }
     
     func onPlayerTimeControlled() {
-        switch self.timeControlStatus {
-        case .waitingToPlayAtSpecifiedRate, .paused:
-            updateNowPlayingForSeeking(didComplete: false)
-        case .playing:
-            updateNowPlayingForSeeking(didComplete: true)
-        default:
-            break
+        Task {
+            switch self.timeControlStatus {
+            case .waitingToPlayAtSpecifiedRate, .paused:
+                await updateNowPlayingForSeeking(didComplete: false)
+            case .playing:
+                await updateNowPlayingForSeeking(didComplete: true)
+            default:
+                break
+            }
         }
     }
     
@@ -160,9 +164,9 @@ public class VelociPlayer: AVPlayer {
     }
     
     override public func seek(to time: CMTime) async -> Bool {
-        updateNowPlayingForSeeking(didComplete: false)
+        await updateNowPlayingForSeeking(didComplete: false)
         let completed = await super.seek(to: time)
-        updateNowPlayingForSeeking(didComplete: completed)
+        await updateNowPlayingForSeeking(didComplete: completed)
         return completed
     }
     
@@ -171,9 +175,9 @@ public class VelociPlayer: AVPlayer {
     }
     
     override public func seek(to time: CMTime, toleranceBefore: CMTime, toleranceAfter: CMTime) async -> Bool {
-        updateNowPlayingForSeeking(didComplete: false)
+        await updateNowPlayingForSeeking(didComplete: false)
         let completed = await super.seek(to: time, toleranceBefore: toleranceBefore, toleranceAfter: toleranceAfter)
-        updateNowPlayingForSeeking(didComplete: completed)
+        await updateNowPlayingForSeeking(didComplete: completed)
         return completed
     }
     
@@ -182,15 +186,15 @@ public class VelociPlayer: AVPlayer {
     }
     
     override public func seek(to date: Date) async -> Bool {
-        updateNowPlayingForSeeking(didComplete: false)
+        await updateNowPlayingForSeeking(didComplete: false)
         let completed = await super.seek(to: date)
-        updateNowPlayingForSeeking(didComplete: completed)
+        await updateNowPlayingForSeeking(didComplete: completed)
         return completed
     }
     
+    @MainActor
     private func updateNowPlayingForSeeking(didComplete: Bool) {
         self.nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = self.currentTime().seconds
-        self.nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = self.length.seconds
         self.nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = didComplete ? 1 : 0
     }
     
