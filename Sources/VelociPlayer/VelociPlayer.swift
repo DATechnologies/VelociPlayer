@@ -192,9 +192,9 @@ public class VelociPlayer: AVPlayer {
     
     @MainActor
     private func updateNowPlayingForSeeking(didComplete: Bool) {
-        self.nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = self.currentTime().seconds
-        self.nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = self.length
-        self.nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = didComplete ? 1 : 0
+        nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = self.currentTime().seconds
+        nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = self.length.seconds
+        nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = didComplete ? 1 : 0
     }
     
     // MARK: - System Integration
@@ -213,19 +213,19 @@ public class VelociPlayer: AVPlayer {
     
     func setUpScrubbing() {
         MPRemoteCommandCenter.shared().changePlaybackPositionCommand.isEnabled = true
-        MPRemoteCommandCenter.shared().changePlaybackPositionCommand.addTarget { [weak self](remoteEvent) -> MPRemoteCommandHandlerStatus in
+        MPRemoteCommandCenter.shared().changePlaybackPositionCommand.addTarget { [weak self] event in
             guard let self = self,
-                  let playbackPositionEvent = remoteEvent as? MPChangePlaybackPositionCommandEvent
+                  let playbackPositionEvent = event as? MPChangePlaybackPositionCommandEvent
                     else { return .commandFailed }
             
-            self.seek(to: CMTime(seconds: playbackPositionEvent.positionTime, preferredTimescale: 1))
+            self.seek(to: CMTime(seconds: playbackPositionEvent.positionTime, preferredTimescale: 10000))
             return .success
         }
     }
     
     func setUpPlayCommand() {
         MPRemoteCommandCenter.shared().playCommand.isEnabled = true
-        MPRemoteCommandCenter.shared().playCommand.addTarget { [weak self] event in
+        MPRemoteCommandCenter.shared().playCommand.addTarget { [weak self] _ in
             guard let self = self else { return .commandFailed }
             self.play()
             return .success
@@ -234,7 +234,7 @@ public class VelociPlayer: AVPlayer {
     
     func setUpPauseCommand() {
         MPRemoteCommandCenter.shared().pauseCommand.isEnabled = true
-        MPRemoteCommandCenter.shared().pauseCommand.addTarget { [weak self] event in
+        MPRemoteCommandCenter.shared().pauseCommand.addTarget { [weak self] _ in
             guard let self = self else { return .commandFailed }
             self.pause()
             return .success
@@ -244,7 +244,7 @@ public class VelociPlayer: AVPlayer {
     func setUpSkipBackwardsCommand() {
         MPRemoteCommandCenter.shared().skipBackwardCommand.isEnabled = true
         MPRemoteCommandCenter.shared().skipBackwardCommand.preferredIntervals = [NSNumber(value: seekInterval)]
-        MPRemoteCommandCenter.shared().skipBackwardCommand.addTarget { [weak self] event in
+        MPRemoteCommandCenter.shared().skipBackwardCommand.addTarget { [weak self] _ in
             guard let self = self else { return .commandFailed }
             self.rewind()
             return .success
@@ -254,7 +254,7 @@ public class VelociPlayer: AVPlayer {
     func setUpSkipForwardsCommand() {
         MPRemoteCommandCenter.shared().skipForwardCommand.isEnabled = true
         MPRemoteCommandCenter.shared().skipForwardCommand.preferredIntervals = [NSNumber(value: seekInterval)]
-        MPRemoteCommandCenter.shared().skipForwardCommand.addTarget { [weak self] event in
+        MPRemoteCommandCenter.shared().skipForwardCommand.addTarget { [weak self] _ in
             guard let self = self else { return .commandFailed }
             self.skipForward()
             return .success
@@ -266,7 +266,6 @@ public class VelociPlayer: AVPlayer {
         nowPlayingInfo[MPMediaItemPropertyTitle] = title
         nowPlayingInfo[MPMediaItemPropertyArtist] = artist
         nowPlayingInfo[MPMediaItemPropertyAlbumTitle] = albumName
-        nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = self.length.seconds
         
         setNowPlayingImage(image)
         
