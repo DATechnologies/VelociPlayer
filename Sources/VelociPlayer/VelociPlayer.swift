@@ -83,8 +83,6 @@ public class VelociPlayer: AVPlayer {
             print("Error syncing with system player: \(error)")
         }
         
-        self.nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = playerItem.duration
-        
         self.play()
     }
     
@@ -195,6 +193,7 @@ public class VelociPlayer: AVPlayer {
     @MainActor
     private func updateNowPlayingForSeeking(didComplete: Bool) {
         self.nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = self.currentTime().seconds
+        self.nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = self.length
         self.nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = didComplete ? 1 : 0
     }
     
