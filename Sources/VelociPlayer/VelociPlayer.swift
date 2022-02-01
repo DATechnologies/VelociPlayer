@@ -86,15 +86,6 @@ public class VelociPlayer: AVPlayer {
         self.play()
     }
     
-    public func seek(toPercent percent: Double) {
-        let seconds = self.length.seconds * percent
-        self.seek(to: seconds)
-    }
-    
-    public func seek(to seconds: TimeInterval) {
-        self.seek(to: CMTime(seconds: seconds, preferredTimescale: 1))
-    }
-    
     public func rewind() {
         let newTime = currentTime().seconds - self.seekInterval
         seek(to: newTime)
@@ -154,6 +145,54 @@ public class VelociPlayer: AVPlayer {
             .sink(receiveValue: { [weak self] rate in
                 self?.isPaused = rate == 0
             })
+    }
+    
+    // MARK: - Seeking
+    public func seek(toPercent percent: Double) {
+        let seconds = self.length.seconds * percent
+        self.seek(to: seconds)
+    }
+    
+    public func seek(to seconds: TimeInterval) {
+        self.seek(to: CMTime(seconds: seconds, preferredTimescale: 1))
+    }
+    
+    override public func seek(to time: CMTime) {
+        Task { await self.seek(to: time) }
+    }
+    
+    override public func seek(to time: CMTime) async -> Bool {
+        updateNowPlayingForSeeking(didComplete: false)
+        let completed = await super.seek(to: time)
+        updateNowPlayingForSeeking(didComplete: completed)
+        return completed
+    }
+    
+    override public func seek(to time: CMTime, toleranceBefore: CMTime, toleranceAfter: CMTime) {
+        Task { await self.seek(to: time, toleranceBefore: toleranceBefore, toleranceAfter: toleranceAfter) }
+    }
+    
+    override public func seek(to time: CMTime, toleranceBefore: CMTime, toleranceAfter: CMTime) async -> Bool {
+        updateNowPlayingForSeeking(didComplete: false)
+        let completed = await super.seek(to: time, toleranceBefore: toleranceBefore, toleranceAfter: toleranceAfter)
+        updateNowPlayingForSeeking(didComplete: completed)
+        return completed
+    }
+    
+    override public func seek(to date: Date) {
+        Task { await self.seek(to: date) }
+    }
+    
+    override public func seek(to date: Date) async -> Bool {
+        updateNowPlayingForSeeking(didComplete: false)
+        let completed = await super.seek(to: date)
+        updateNowPlayingForSeeking(didComplete: completed)
+        return completed
+    }
+    
+    private func updateNowPlayingForSeeking(didComplete: Bool) {
+        self.nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = self.currentTime().seconds
+        self.nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = didComplete ? 1 : 0
     }
     
     // MARK: - System Integration
