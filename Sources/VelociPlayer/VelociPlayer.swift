@@ -116,11 +116,9 @@ public class VelociPlayer: AVPlayer {
     func onPlayerTimeControlled() {
         switch self.timeControlStatus {
         case .waitingToPlayAtSpecifiedRate, .paused:
-            self.nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = self.currentTime().seconds
-            self.nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = 0
+            updateNowPlayingForSeeking(didComplete: false)
         case .playing:
-            self.nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = self.currentTime().seconds
-            self.nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = 1
+            updateNowPlayingForSeeking(didComplete: true)
         default:
             break
         }
@@ -192,6 +190,7 @@ public class VelociPlayer: AVPlayer {
     
     private func updateNowPlayingForSeeking(didComplete: Bool) {
         self.nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = self.currentTime().seconds
+        self.nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = self.length.seconds
         self.nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = didComplete ? 1 : 0
     }
     
