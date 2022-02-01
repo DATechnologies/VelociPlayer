@@ -118,7 +118,7 @@ public class VelociPlayer: AVPlayer {
     
     // MARK: - Player Observation
     func onPlayerTimeChanged(time: CMTime) {
-        self.progress = self.length.seconds/time.seconds
+        self.progress = time.seconds/length.seconds
         self.currentTime = time
     }
     
