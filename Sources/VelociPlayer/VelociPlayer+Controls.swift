@@ -35,13 +35,14 @@ extension VelociPlayer {
     
     /// Stop playback and end any observation on the player.
     public func stop() {
-        self.pause()
         if let timeObserver = timeObserver {
             self.removeTimeObserver(timeObserver)
+            self.timeObserver = nil
         }
         timeControlSubscriber?.cancel()
         playEndedSubscriber?.cancel()
         
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+        self.pause()
     }
 }
