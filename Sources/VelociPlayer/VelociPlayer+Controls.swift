@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  VelociPlayer+Controls.swift
 //  
 //
 //  Created by Ethan Humphrey on 2/1/22.
@@ -35,7 +35,7 @@ extension VelociPlayer {
     
     /// Stop playback and end any observation on the player.
     public func stop() {
-        if let timeObserver = timeObserver {
+        if let timeObserver = timeObserver, timeControlStatus == .playing {
             self.removeTimeObserver(timeObserver)
             self.timeObserver = nil
         }
