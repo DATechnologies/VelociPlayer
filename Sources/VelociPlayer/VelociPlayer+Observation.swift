@@ -13,20 +13,20 @@ import Combine
 extension VelociPlayer {
     // MARK: - Player Observation
     func onPlayerTimeChanged(time: CMTime) {
-        self.progress = time.seconds/length.seconds
+        self.progress = time.seconds / length.seconds
         self.currentTime = time
     }
     
     func onPlayerTimeControlled() {
-        Task {
-            switch self.timeControlStatus {
-            case .waitingToPlayAtSpecifiedRate, .paused:
-                await updateNowPlayingForSeeking(didComplete: false)
-            case .playing:
-                await updateNowPlayingForSeeking(didComplete: true)
-            default:
-                break
-            }
+        switch self.timeControlStatus {
+        case .waitingToPlayAtSpecifiedRate, .paused:
+            self.isPaused = true
+            Task { await updateNowPlayingForSeeking(didComplete: false) }
+        case .playing:
+            self.isPaused = false
+            Task { await updateNowPlayingForSeeking(didComplete: true) }
+        default:
+            break
         }
     }
     
@@ -44,10 +44,5 @@ extension VelociPlayer {
             .sink { [weak self] _ in
                 self?.progress = 1
             }
-        
-        rateSubscriber = self.publisher(for: \.rate)
-            .sink(receiveValue: { [weak self] rate in
-                self?.isPaused = rate == 0
-            })
     }
 }

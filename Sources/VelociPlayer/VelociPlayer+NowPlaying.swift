@@ -125,6 +125,12 @@ extension VelociPlayer {
         }
     }
     
+    /// Set the information that displays in the system player which appears in Control Center, on the Lock Screen, etc. Automatically enables `displayInSystemPlayer`/
+    /// - Parameters:
+    ///   - title: The title to display for the current item.
+    ///   - artist: The artist to display for the current item.
+    ///   - albumName: The album name to display for the current item.
+    ///   - image: The image to display for the current item.
     public func setNowPlayingInfo(title: String? = nil, artist: String? = nil, albumName: String? = nil, image: UIImage? = nil) {
         nowPlayingInfo = [String: Any]()
         nowPlayingInfo[MPMediaItemPropertyTitle] = title
@@ -136,6 +142,8 @@ extension VelociPlayer {
         displayInSystemPlayer = true
     }
     
+    /// Set the image that displays in the system player which appears in Control Center, on the Lock Screen, etc.
+    /// - Parameter image: The image to display for the current item.
     public func setNowPlayingImage(_ image: UIImage?) {
         guard let image = image else { return }
         
@@ -144,6 +152,10 @@ extension VelociPlayer {
         }
     }
     
+    /// Add a custom property for the system player.
+    /// - Parameters:
+    ///   - propertyName: The name of the custom property.
+    ///   - value: The value of the custom property.
     public func addNowPlayingProperty(propertyName: String, value: Any?) {
         nowPlayingInfo[propertyName] = value
     }

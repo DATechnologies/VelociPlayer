@@ -32,7 +32,6 @@ extension VelociPlayer {
         }
         timeControlSubscriber?.cancel()
         playEndedSubscriber?.cancel()
-        rateSubscriber?.cancel()
         
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
     }
