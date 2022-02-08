@@ -88,8 +88,11 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     
     private func prepareForPlayback() {
         Task {
+            await currentItem?.asset.loadValues(forKeys: ["duration"])
             if let duration = currentItem?.asset.duration {
-                self.length = duration
+                await MainActor.run {
+                    self.length = duration
+                }
             }
         }
         
