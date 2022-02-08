@@ -14,10 +14,10 @@ public class VelociPlayer: AVPlayer {
     
     // MARK: - Variables
     /// The progress of the player: Ranges from 0 to 1.
-    @Published public var progress = 0.0
+    @Published public private(set) var progress = 0.0
     /// The  playback time of the current item.
-    @Published public var currentTime = CMTime(seconds: 0, preferredTimescale: 1)
-    @Published public var isPaused = true
+    @Published public private(set) var currentTime = CMTime(seconds: 0, preferredTimescale: 1)
+    @Published public private(set) var isPaused = true
     
     /// The total length of the currently item.
     @Published public var length = CMTime(seconds: 0, preferredTimescale: 1)

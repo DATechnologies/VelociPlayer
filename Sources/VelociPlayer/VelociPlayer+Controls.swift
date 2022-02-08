@@ -24,7 +24,16 @@ extension VelociPlayer {
         seek(to: newTime)
     }
     
-    /// Stop playback and end any observation on the player
+    ///  Toggles playback for the current item.
+    public func togglePlayback() {
+        if isPaused {
+            play()
+        } else {
+            pause()
+        }
+    }
+    
+    /// Stop playback and end any observation on the player.
     public func stop() {
         self.pause()
         if let timeObserver = timeObserver {
