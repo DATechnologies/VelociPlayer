@@ -10,7 +10,7 @@ import AVFoundation
 import MediaPlayer
 import Combine
 
-public class VelociPlayer: AVPlayer {
+public class VelociPlayer: AVPlayer, ObservableObject {
     
     // MARK: - Variables
     /// The progress of the player: Ranges from 0 to 1.
