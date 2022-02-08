@@ -19,7 +19,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     @Published public private(set) var currentTime = CMTime(seconds: 0, preferredTimescale: 1)
     @Published public private(set) var isPaused = true
     
-    /// The total length of the currently item.
+    /// The total length of the currently playing item.
     @Published public var length = CMTime(seconds: 0, preferredTimescale: 1)
     
     /// Determines how many seconds the `rewind` and `skipForward` commands should skip. The default is `10.0`.
@@ -87,9 +87,9 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     }
     
     private func prepareForPlayback() {
-        Task {
+//        Task {
             self.length = currentItem?.duration ?? CMTime(seconds: 0, preferredTimescale: 1)
-        }
+//        }
         
         startObservingPlayer()
         
