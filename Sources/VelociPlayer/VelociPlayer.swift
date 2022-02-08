@@ -64,7 +64,9 @@ public class VelociPlayer: AVPlayer {
     }
     
     public override init(url: URL) {
-        super.init(url: url)
+        super.init()
+        let playerItem = AVPlayerItem(url: url)
+        self.replaceCurrentItem(with: playerItem)
         audioUrl = url
         volume = 1.0
         prepareForPlayback()
