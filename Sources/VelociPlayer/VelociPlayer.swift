@@ -87,9 +87,9 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     }
     
     private func prepareForPlayback() {
-//        Task {
-            self.length = currentItem?.duration ?? CMTime(seconds: 0, preferredTimescale: 1)
-//        }
+        if let duration = currentItem?.duration {
+            self.length = duration
+        }
         
         startObservingPlayer()
         
