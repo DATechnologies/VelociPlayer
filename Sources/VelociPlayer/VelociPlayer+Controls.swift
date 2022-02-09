@@ -44,5 +44,11 @@ extension VelociPlayer {
         
         self.nowPlayingInfo = nil
         self.pause()
+        
+        do {
+            try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+        } catch {
+            print("[VelociPlayer] Error while communicating with AVAudioSession", error.localizedDescription)
+        }
     }
 }

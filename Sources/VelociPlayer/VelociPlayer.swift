@@ -65,9 +65,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     }
     
     /// Initialize a new `VelociPlayer` object with a `mediaURL`
-    ///
-    /// Can throw because setting the `AVAudioSession` category, and setting it to active, throw.
-    public init(mediaURL: URL) throws {
+    public init(mediaURL: URL) {
         super.init()
         
         let playerItem = AVPlayerItem(url: mediaURL)
@@ -76,7 +74,11 @@ public class VelociPlayer: AVPlayer, ObservableObject {
         self.mediaURL = mediaURL
         volume = 1.0
         
-        try prepareForPlayback()
+        prepareForPlayback()
+    }
+    
+    public override convenience init(url URL: URL) {
+        self.init(mediaURL: URL)
     }
     
     deinit {
@@ -86,18 +88,18 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     
     /// Start playing audio from a specified URL.
     /// - Parameter url: The URL containing an audio file to play.
-    public func beginPlayback(from mediaURL: URL) throws {
+    public func beginPlayback(from mediaURL: URL) {
         self.mediaURL = mediaURL
         
         let playerItem = AVPlayerItem(url: mediaURL)
         self.replaceCurrentItem(with: playerItem)
         
-        try prepareForPlayback()
+        prepareForPlayback()
         
         self.play()
     }
     
-    private func prepareForPlayback() throws {
+    private func prepareForPlayback() {
         Task {
             await currentItem?.asset.loadValues(forKeys: ["duration"])
             
@@ -110,8 +112,12 @@ public class VelociPlayer: AVPlayer, ObservableObject {
         
         startObservingPlayer()
         
-        try AVAudioSession.sharedInstance().setCategory(.playback)
-        try AVAudioSession.sharedInstance().setActive(true, options: .notifyOthersOnDeactivation)
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.playback)
+            try AVAudioSession.sharedInstance().setActive(true, options: .notifyOthersOnDeactivation)
+        } catch {
+            print("[VelociPlayer] Error while communicating with AVAudioSession", error.localizedDescription)
+        }
     }
     
     // MARK: - Player Observation
