@@ -1,3 +1,3 @@
 # VelociPlayer
 
-A description of this package.
+Documentation to come!
