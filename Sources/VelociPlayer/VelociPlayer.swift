@@ -47,7 +47,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     public private(set) var mediaURL: URL?
     
     internal var timeObserver: Any?
-    internal var cancellables: [AnyCancellable] = []
+    internal var subscribers: [AnyCancellable] = []
     
     internal var nowPlayingInfo: [String: Any]? {
         didSet {
@@ -83,7 +83,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     
     deinit {
         stop()
-        cancellables.removeAll()
+        subscribers.removeAll()
     }
     
     /// Start playing audio from a specified URL.
@@ -148,12 +148,12 @@ public class VelociPlayer: AVPlayer, ObservableObject {
             .sink(receiveValue: { [weak self] time in
                 self?.onPlayerTimeControlled()
             })
-            .store(in: &cancellables)
+            .store(in: &subscribers)
         
         NotificationCenter.default.publisher(for: .AVPlayerItemDidPlayToEndTime, object: nil)
             .sink { [weak self] _ in
                 self?.progress = 1
             }
-            .store(in: &cancellables)
+            .store(in: &subscribers)
     }
 }

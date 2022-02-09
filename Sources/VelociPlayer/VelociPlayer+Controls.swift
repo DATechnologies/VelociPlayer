@@ -40,7 +40,7 @@ extension VelociPlayer {
             self.timeObserver = nil
         }
         
-        cancellables.removeAll()
+        subscribers.removeAll()
         
         self.nowPlayingInfo = nil
         self.pause()
