@@ -117,10 +117,10 @@ public class VelociPlayer: AVPlayer, ObservableObject {
         switch self.timeControlStatus {
         case .waitingToPlayAtSpecifiedRate, .paused:
             self.isPaused = true
-            Task { await updateNowPlayingForSeeking(didComplete: false) }
+            Task { await updateNowPlayingForSeeking() }
         case .playing:
             self.isPaused = false
-            Task { await updateNowPlayingForSeeking(didComplete: true) }
+            Task { await updateNowPlayingForSeeking() }
         default:
             break
         }
