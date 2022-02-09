@@ -1,6 +1,6 @@
 //
 //  VelociPlayer+Controls.swift
-//  
+//  VelociPlayer
 //
 //  Created by Ethan Humphrey on 2/1/22.
 //
@@ -24,7 +24,7 @@ extension VelociPlayer {
         seek(to: newTime)
     }
     
-    ///  Toggles playback for the current item.
+    /// Toggles playback for the current item.
     public func togglePlayback() {
         if isPaused {
             play()
@@ -39,10 +39,10 @@ extension VelociPlayer {
             self.removeTimeObserver(timeObserver)
             self.timeObserver = nil
         }
-        timeControlSubscriber?.cancel()
-        playEndedSubscriber?.cancel()
         
-        MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+        cancellables.removeAll()
+        
+        self.nowPlayingInfo = nil
         self.pause()
     }
 }

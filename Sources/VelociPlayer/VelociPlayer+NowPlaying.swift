@@ -1,6 +1,6 @@
 //
 //  VelociPlayer+NowPlaying.swift
-//  
+//  VelociPlayer
 //
 //  Created by Ethan Humphrey on 2/1/22.
 //
@@ -11,31 +11,33 @@ import MediaPlayer
 import Combine
 
 extension VelociPlayer {
-    
     @MainActor
-    func updateNowPlayingForSeeking() {
-        nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = self.currentTime().seconds
-        nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = self.length.seconds
-        nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = self.rate
+    internal func updateNowPlayingForSeeking() {
+        nowPlayingInfo?[MPNowPlayingInfoPropertyElapsedPlaybackTime] = self.currentTime().seconds
+        nowPlayingInfo?[MPMediaItemPropertyPlaybackDuration] = self.length.seconds
+        nowPlayingInfo?[MPNowPlayingInfoPropertyPlaybackRate] = self.rate
     }
     
     // MARK: - System Integration
-    func setUpNowPlaying() {
+    internal func setUpNowPlaying() {
         setUpPlayCommand()
         setUpPauseCommand()
         setUpSkipBackwardsCommand()
         setUpSkipForwardsCommand()
         setUpScrubbing()
+        
         UIApplication.shared.beginReceivingRemoteControlEvents()
     }
     
-    func removeFromNowPlaying() {
+    internal func removeFromNowPlaying() {
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
     }
     
-    func setUpScrubbing() {
-        MPRemoteCommandCenter.shared().changePlaybackPositionCommand.isEnabled = true
-        MPRemoteCommandCenter.shared().changePlaybackPositionCommand.addTarget { [weak self] event in
+    private func setUpScrubbing() {
+        let command = MPRemoteCommandCenter.shared().changePlaybackPositionCommand
+        
+        command.isEnabled = true
+        command.addTarget { [weak self] event in
             guard let self = self,
                   let playbackPositionEvent = event as? MPChangePlaybackPositionCommandEvent
                     else { return .commandFailed }
@@ -45,38 +47,45 @@ extension VelociPlayer {
         }
     }
     
-    func setUpPlayCommand() {
-        MPRemoteCommandCenter.shared().playCommand.isEnabled = true
-        MPRemoteCommandCenter.shared().playCommand.addTarget { [weak self] _ in
+    private func setUpPlayCommand() {
+        let command = MPRemoteCommandCenter.shared().playCommand
+        command.isEnabled = true
+        command.addTarget { [weak self] _ in
             guard let self = self else { return .commandFailed }
             self.play()
             return .success
         }
     }
     
-    func setUpPauseCommand() {
-        MPRemoteCommandCenter.shared().pauseCommand.isEnabled = true
-        MPRemoteCommandCenter.shared().pauseCommand.addTarget { [weak self] _ in
+    private func setUpPauseCommand() {
+        let command = MPRemoteCommandCenter.shared().pauseCommand
+        
+        command.isEnabled = true
+        command.addTarget { [weak self] _ in
             guard let self = self else { return .commandFailed }
             self.pause()
             return .success
         }
     }
     
-    func setUpSkipBackwardsCommand() {
-        MPRemoteCommandCenter.shared().skipBackwardCommand.isEnabled = true
-        MPRemoteCommandCenter.shared().skipBackwardCommand.preferredIntervals = [NSNumber(value: seekInterval)]
-        MPRemoteCommandCenter.shared().skipBackwardCommand.addTarget { [weak self] _ in
+    internal func setUpSkipBackwardsCommand() {
+        let command = MPRemoteCommandCenter.shared().skipBackwardCommand
+        
+        command.isEnabled = true
+        command.preferredIntervals = [NSNumber(value: seekInterval)]
+        command.addTarget { [weak self] _ in
             guard let self = self else { return .commandFailed }
             self.rewind()
             return .success
         }
     }
     
-    func setUpSkipForwardsCommand() {
-        MPRemoteCommandCenter.shared().skipForwardCommand.isEnabled = true
-        MPRemoteCommandCenter.shared().skipForwardCommand.preferredIntervals = [NSNumber(value: seekInterval)]
-        MPRemoteCommandCenter.shared().skipForwardCommand.addTarget { [weak self] _ in
+    internal func setUpSkipForwardsCommand() {
+        let command = MPRemoteCommandCenter.shared().skipForwardCommand
+        
+        command.isEnabled = true
+        command.preferredIntervals = [NSNumber(value: seekInterval)]
+        command.addTarget { [weak self] _ in
             guard let self = self else { return .commandFailed }
             self.skipForward()
             return .success
@@ -89,12 +98,18 @@ extension VelociPlayer {
     ///   - artist: The artist to display for the current item.
     ///   - albumName: The album name to display for the current item.
     ///   - image: The image to display for the current item.
-    public func setNowPlayingInfo(title: String? = nil, artist: String? = nil, albumName: String? = nil, image: UIImage? = nil) {
-        nowPlayingInfo = [String: Any]()
+    public func setNowPlayingInfo(
+        title: String? = nil,
+        artist: String? = nil,
+        albumName: String? = nil,
+        image: UIImage? = nil
+    ) {
+        var nowPlayingInfo = [String: Any]()
         nowPlayingInfo[MPMediaItemPropertyTitle] = title
         nowPlayingInfo[MPMediaItemPropertyArtist] = artist
         nowPlayingInfo[MPMediaItemPropertyAlbumTitle] = albumName
-        nowPlayingInfo[MPMediaItemPropertyAssetURL] = audioUrl
+        nowPlayingInfo[MPMediaItemPropertyAssetURL] = mediaURL
+        self.nowPlayingInfo = nowPlayingInfo
         
         setNowPlayingImage(image)
         
@@ -106,7 +121,7 @@ extension VelociPlayer {
     public func setNowPlayingImage(_ image: UIImage?) {
         guard let image = image else { return }
         
-        nowPlayingInfo[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: image.size) { size in
+        nowPlayingInfo?[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: image.size) { size in
             return image
         }
     }
@@ -116,6 +131,6 @@ extension VelociPlayer {
     ///   - propertyName: The name of the custom property.
     ///   - value: The value of the custom property.
     public func addNowPlayingProperty(propertyName: String, value: Any?) {
-        nowPlayingInfo[propertyName] = value
+        nowPlayingInfo?[propertyName] = value
     }
 }

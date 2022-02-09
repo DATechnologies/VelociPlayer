@@ -1,6 +1,6 @@
 //
 //  VelociPlayer.swift
-//
+//  VelociPlayer
 //
 //  Created by Ethan Humphrey on 1/21/22.
 //
@@ -11,10 +11,10 @@ import MediaPlayer
 import Combine
 
 public class VelociPlayer: AVPlayer, ObservableObject {
-    
     // MARK: - Variables
     /// The progress of the player: Ranges from 0 to 1.
     @Published public private(set) var progress = 0.0
+    
     /// The  playback time of the current item.
     @Published public private(set) var currentTime = CMTime(seconds: 0, preferredTimescale: 1)
     @Published public private(set) var isPaused = true
@@ -25,10 +25,10 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     /// Determines how many seconds the `rewind` and `skipForward` commands should skip. The default is `10.0`.
     public var seekInterval = 10.0 {
         didSet {
-            if displayInSystemPlayer {
-                setUpSkipForwardsCommand()
-                setUpSkipBackwardsCommand()
-            }
+            guard displayInSystemPlayer else { return }
+            
+            setUpSkipForwardsCommand()
+            setUpSkipBackwardsCommand()
         }
     }
     
@@ -43,52 +43,64 @@ public class VelociPlayer: AVPlayer, ObservableObject {
         }
     }
     
-    public private(set) var audioUrl: URL?
+    /// The source URL of the media file
+    public private(set) var mediaURL: URL?
     
-    var timeObserver: Any?
-    var timeControlSubscriber: AnyCancellable?
-    var playEndedSubscriber: AnyCancellable?
+    internal var timeObserver: Any?
+    internal var cancellables: [AnyCancellable] = []
     
-    var nowPlayingInfo = [String: Any]() {
+    internal var nowPlayingInfo: [String: Any]? {
         didSet {
-            if displayInSystemPlayer {
-                MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
-            }
+            guard displayInSystemPlayer else { return }
+            
+            MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
         }
     }
     
     // MARK: - Initialization
     public override init() {
         super.init()
+        
         volume = 1.0
     }
     
-    public override init(url: URL) {
+    /// Initialize a new `VelociPlayer` object with a `mediaURL`
+    ///
+    /// Can throw because setting the `AVAudioSession` category, and setting it to active, throw.
+    public init(mediaURL: URL) throws {
         super.init()
-        let playerItem = AVPlayerItem(url: url)
+        
+        let playerItem = AVPlayerItem(url: mediaURL)
         self.replaceCurrentItem(with: playerItem)
-        audioUrl = url
+        
+        self.mediaURL = mediaURL
         volume = 1.0
-        prepareForPlayback()
+        
+        try prepareForPlayback()
     }
     
     deinit {
         stop()
+        cancellables.removeAll()
     }
     
     /// Start playing audio from a specified URL.
     /// - Parameter url: The URL containing an audio file to play.
-    public func beginPlayback(from url: URL) {
-        self.audioUrl = url
-        let playerItem = AVPlayerItem(url: url)
+    public func beginPlayback(from mediaURL: URL) throws {
+        self.mediaURL = mediaURL
+        
+        let playerItem = AVPlayerItem(url: mediaURL)
         self.replaceCurrentItem(with: playerItem)
-        prepareForPlayback()
+        
+        try prepareForPlayback()
+        
         self.play()
     }
     
-    private func prepareForPlayback() {
+    private func prepareForPlayback() throws {
         Task {
             await currentItem?.asset.loadValues(forKeys: ["duration"])
+            
             if let duration = currentItem?.asset.duration {
                 await MainActor.run {
                     self.length = duration
@@ -98,13 +110,8 @@ public class VelociPlayer: AVPlayer, ObservableObject {
         
         startObservingPlayer()
         
-        do {
-            try AVAudioSession.sharedInstance().setCategory(.playback)
-            try AVAudioSession.sharedInstance().setActive(true, options: .notifyOthersOnDeactivation)
-        }
-        catch {
-            print("Error syncing with system player: \(error)")
-        }
+        try AVAudioSession.sharedInstance().setCategory(.playback)
+        try AVAudioSession.sharedInstance().setActive(true, options: .notifyOthersOnDeactivation)
     }
     
     // MARK: - Player Observation
@@ -131,14 +138,16 @@ public class VelociPlayer: AVPlayer, ObservableObject {
             self?.onPlayerTimeChanged(time: time)
         }
         
-        timeControlSubscriber = self.publisher(for: \.timeControlStatus)
+        self.publisher(for: \.timeControlStatus)
             .sink(receiveValue: { [weak self] time in
                 self?.onPlayerTimeControlled()
             })
+            .store(in: &cancellables)
         
-        playEndedSubscriber = NotificationCenter.default.publisher(for: .AVPlayerItemDidPlayToEndTime, object: nil)
+        NotificationCenter.default.publisher(for: .AVPlayerItemDidPlayToEndTime, object: nil)
             .sink { [weak self] _ in
                 self?.progress = 1
             }
+            .store(in: &cancellables)
     }
 }

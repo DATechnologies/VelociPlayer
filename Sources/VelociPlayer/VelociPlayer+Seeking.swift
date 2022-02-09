@@ -1,6 +1,6 @@
 //
 //  VelociPlayer+Seeking.swift
-//  
+//  VelociPlayer
 //
 //  Created by Ethan Humphrey on 2/9/22.
 //
@@ -22,7 +22,9 @@ extension VelociPlayer {
     }
     
     override public func seek(to time: CMTime) {
-        Task { await self.seek(to: time) }
+        Task {
+            await self.seek(to: time)
+        }
     }
     
     override public func seek(to time: CMTime) async -> Bool {
@@ -31,18 +33,38 @@ extension VelociPlayer {
         return completed
     }
     
-    override public func seek(to time: CMTime, toleranceBefore: CMTime, toleranceAfter: CMTime) {
-        Task { await self.seek(to: time, toleranceBefore: toleranceBefore, toleranceAfter: toleranceAfter) }
+    override public func seek(
+        to time: CMTime,
+        toleranceBefore: CMTime,
+        toleranceAfter: CMTime
+    ) {
+        Task {
+            await self.seek(
+                to: time,
+                toleranceBefore: toleranceBefore,
+                toleranceAfter: toleranceAfter
+            )
+        }
     }
     
-    override public func seek(to time: CMTime, toleranceBefore: CMTime, toleranceAfter: CMTime) async -> Bool {
-        let completed = await super.seek(to: time, toleranceBefore: toleranceBefore, toleranceAfter: toleranceAfter)
+    override public func seek(
+        to time: CMTime,
+        toleranceBefore: CMTime,
+        toleranceAfter: CMTime
+    ) async -> Bool {
+        let completed = await super.seek(
+            to: time,
+            toleranceBefore: toleranceBefore,
+            toleranceAfter: toleranceAfter
+        )
         await updateNowPlayingForSeeking()
         return completed
     }
     
     override public func seek(to date: Date) {
-        Task { await self.seek(to: date) }
+        Task {
+            await self.seek(to: date)
+        }
     }
     
     override public func seek(to date: Date) async -> Bool {
