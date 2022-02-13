@@ -43,12 +43,12 @@ public class VelociPlayer: AVPlayer, ObservableObject {
         }
     }
     
+    /// Specifies the audio mode for the system. Set this to `.default` for standard audio and `.moviePlayback` for videos.
     public var audioMode: AVAudioSession.Mode = .default {
         didSet {
             setAVCategory()
         }
     }
-    
     
     public enum MediaType {
         case audio, video
