@@ -85,6 +85,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     public init(autoPlay: Bool = false, mediaURL: URL? = nil) {
         super.init()
         volume = 1.0
+        self.autoPlay = autoPlay
         self.mediaURL = mediaURL
         self.publisher(for: \.status)
             .sink { [weak self] status in
