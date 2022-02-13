@@ -15,11 +15,11 @@ extension VelociPlayer {
     func bufferStatusChanged(to status: BufferStatus) {
         switch status {
         case .empty:
-            pause()
+            print("[VelociPlayer]: Buffer Empty")
         case .likelyToKeepUp:
-            play()
+            print("[VelociPlayer]: Buffer Likely To Keep Up")
         case .full:
-            play()
+            print("[VelociPlayer]: Buffer Full")
         }
     }
     
