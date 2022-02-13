@@ -43,6 +43,17 @@ public class VelociPlayer: AVPlayer, ObservableObject {
         }
     }
     
+    public var audioMode: AVAudioSession.Mode = .default {
+        didSet {
+            setAVCategory()
+        }
+    }
+    
+    
+    public enum MediaType {
+        case audio, video
+    }
+    
     /// The source URL of the media file
     public private(set) var mediaURL: URL?
     
@@ -111,9 +122,12 @@ public class VelociPlayer: AVPlayer, ObservableObject {
         }
         
         startObservingPlayer()
-        
+        setAVCategory()
+    }
+    
+    private func setAVCategory() {
         do {
-            try AVAudioSession.sharedInstance().setCategory(.playback)
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: audioMode)
             try AVAudioSession.sharedInstance().setActive(true, options: .notifyOthersOnDeactivation)
         } catch {
             print("[VelociPlayer] Error while communicating with AVAudioSession", error.localizedDescription)
