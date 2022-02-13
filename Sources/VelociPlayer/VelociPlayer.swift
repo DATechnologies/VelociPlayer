@@ -86,7 +86,6 @@ public class VelociPlayer: AVPlayer, ObservableObject {
         super.init()
         volume = 1.0
         self.mediaURL = mediaURL
-        prepareForPlayback()
     }
     
     deinit {
@@ -148,15 +147,34 @@ public class VelociPlayer: AVPlayer, ObservableObject {
         }
     }
     
+    internal func statusChanged() {
+        switch self.status {
+        case .unknown:
+            break
+        case .failed:
+            break
+        case .readyToPlay:
+            prepareForPlayback()
+        @unknown default:
+            break
+        }
+    }
+    
     internal func startObservingPlayer() {
         timeObserver = self.addPeriodicTimeObserver(forInterval: CMTime(seconds: 0.1, preferredTimescale: 10000), queue: .main) { [weak self] time in
             self?.onPlayerTimeChanged(time: time)
         }
         
+        self.publisher(for: \.status)
+            .sink { [weak self] status in
+                self?.statusChanged()
+            }
+            .store(in: &subscribers)
+        
         self.publisher(for: \.timeControlStatus)
-            .sink(receiveValue: { [weak self] time in
+            .sink { [weak self] time in
                 self?.onPlayerTimeControlled()
-            })
+            }
             .store(in: &subscribers)
         
         NotificationCenter.default.publisher(for: .AVPlayerItemDidPlayToEndTime, object: nil)
