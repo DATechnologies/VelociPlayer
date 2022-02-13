@@ -63,10 +63,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     /// The source URL of the media file
     public var mediaURL: URL? {
         didSet {
-            if let mediaURL = mediaURL {
-                let playerItem = AVPlayerItem(url: mediaURL)
-                self.replaceCurrentItem(with: playerItem)
-            }
+            prepareNewPlayerItem()
         }
     }
     
@@ -182,5 +179,36 @@ public class VelociPlayer: AVPlayer, ObservableObject {
                 self?.progress = 1
             }
             .store(in: &subscribers)
+    }
+    
+    internal func prepareNewPlayerItem() {
+        if let mediaURL = mediaURL {
+            let playerItem = AVPlayerItem(url: mediaURL)
+            self.replaceCurrentItem(with: playerItem)
+            
+            playerItem.publisher(for: \.isPlaybackBufferEmpty)
+                .sink { [weak self] isPlaybackBufferEmpty in
+                    if isPlaybackBufferEmpty {
+                        self?.bufferStatusChanged(to: .empty)
+                    }
+                }
+                .store(in: &subscribers)
+            
+            playerItem.publisher(for: \.isPlaybackLikelyToKeepUp)
+                .sink { [weak self] isPlaybackLikelyToKeepUp in
+                    if isPlaybackLikelyToKeepUp {
+                        self?.bufferStatusChanged(to: .likelyToKeepUp)
+                    }
+                }
+                .store(in: &subscribers)
+            
+            playerItem.publisher(for: \.isPlaybackBufferFull)
+                .sink { [weak self] isPlaybackBufferFull in
+                    if isPlaybackBufferFull {
+                        self?.bufferStatusChanged(to: .full)
+                    }
+                }
+                .store(in: &subscribers)
+        }
     }
 }
