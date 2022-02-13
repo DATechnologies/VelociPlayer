@@ -15,7 +15,7 @@ extension VelociPlayer {
     
     /// Begins playback of the current item
     public override func play() {
-        if subscribers.isEmpty {
+        if timeObserver == nil {
             startObservingPlayer()
             setAVCategory()
         }
