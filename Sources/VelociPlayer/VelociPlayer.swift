@@ -185,30 +185,33 @@ public class VelociPlayer: AVPlayer, ObservableObject {
         if let mediaURL = mediaURL {
             let playerItem = AVPlayerItem(url: mediaURL)
             self.replaceCurrentItem(with: playerItem)
+            playerItem.preferredForwardBufferDuration = 5
             
-            playerItem.publisher(for: \.isPlaybackBufferEmpty)
-                .sink { [weak self] isPlaybackBufferEmpty in
-                    if isPlaybackBufferEmpty {
-                        self?.bufferStatusChanged(to: .empty)
-                    }
-                }
-                .store(in: &subscribers)
+//            playerItem.publisher(for: \.isPlaybackBufferEmpty)
+//                .sink { [weak self] isPlaybackBufferEmpty in
+//                    if isPlaybackBufferEmpty {
+//                        self?.bufferStatusChanged(to: .empty)
+//                    }
+//                }
+//                .store(in: &subscribers)
+//
+//            playerItem.publisher(for: \.isPlaybackLikelyToKeepUp)
+//                .sink { [weak self] isPlaybackLikelyToKeepUp in
+//                    if isPlaybackLikelyToKeepUp {
+//                        self?.bufferStatusChanged(to: .likelyToKeepUp)
+//                    }
+//                }
+//                .store(in: &subscribers)
+//
+//            playerItem.publisher(for: \.isPlaybackBufferFull)
+//                .sink { [weak self] isPlaybackBufferFull in
+//                    if isPlaybackBufferFull {
+//                        self?.bufferStatusChanged(to: .full)
+//                    }
+//                }
+//                .store(in: &subscribers)
             
-            playerItem.publisher(for: \.isPlaybackLikelyToKeepUp)
-                .sink { [weak self] isPlaybackLikelyToKeepUp in
-                    if isPlaybackLikelyToKeepUp {
-                        self?.bufferStatusChanged(to: .likelyToKeepUp)
-                    }
-                }
-                .store(in: &subscribers)
             
-            playerItem.publisher(for: \.isPlaybackBufferFull)
-                .sink { [weak self] isPlaybackBufferFull in
-                    if isPlaybackBufferFull {
-                        self?.bufferStatusChanged(to: .full)
-                    }
-                }
-                .store(in: &subscribers)
         }
     }
 }
