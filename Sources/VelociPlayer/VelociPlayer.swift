@@ -118,7 +118,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     
     internal func setAVCategory() {
         do {
-            try AVAudioSession.sharedInstance().setCategory(.playback, mode: audioMode)
+            try AVAudioSession.sharedInstance().setCategory(.soloAmbient, mode: audioMode)
             try AVAudioSession.sharedInstance().setActive(true, options: .notifyOthersOnDeactivation)
         } catch {
             print("[VelociPlayer] Error while communicating with AVAudioSession", error.localizedDescription)
@@ -210,8 +210,6 @@ public class VelociPlayer: AVPlayer, ObservableObject {
                     }
                 }
                 .store(in: &subscribers)
-            
-            
         }
     }
 }
