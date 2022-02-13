@@ -86,6 +86,11 @@ public class VelociPlayer: AVPlayer, ObservableObject {
         super.init()
         volume = 1.0
         self.mediaURL = mediaURL
+        self.publisher(for: \.status)
+            .sink { [weak self] status in
+                self?.statusChanged()
+            }
+            .store(in: &subscribers)
     }
     
     deinit {
@@ -164,12 +169,6 @@ public class VelociPlayer: AVPlayer, ObservableObject {
         timeObserver = self.addPeriodicTimeObserver(forInterval: CMTime(seconds: 0.1, preferredTimescale: 10000), queue: .main) { [weak self] time in
             self?.onPlayerTimeChanged(time: time)
         }
-        
-        self.publisher(for: \.status)
-            .sink { [weak self] status in
-                self?.statusChanged()
-            }
-            .store(in: &subscribers)
         
         self.publisher(for: \.timeControlStatus)
             .sink { [weak self] time in
