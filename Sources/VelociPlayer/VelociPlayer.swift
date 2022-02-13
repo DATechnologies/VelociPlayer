@@ -82,7 +82,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     }
     
     // MARK: - Initialization
-    public init(autoPlay: Bool = false, mediaURL: URL?) {
+    public init(autoPlay: Bool = false, mediaURL: URL? = nil) {
         super.init()
         volume = 1.0
         self.mediaURL = mediaURL
