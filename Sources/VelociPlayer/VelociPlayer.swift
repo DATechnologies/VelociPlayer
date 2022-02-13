@@ -16,17 +16,23 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     @Published public private(set) var progress = 0.0
     
     /// The  playback time of the current item.
-    @Published public private(set) var currentTime = CMTime(seconds: 0, preferredTimescale: 1)
+    @Published public var currentTime = CMTime(seconds: 0, preferredTimescale: 1)
+    
+    /// Indicates if playback is currently paused.
     @Published public private(set) var isPaused = true
+    
+    /// Indicates if the player is currently loading content.
+    @Published public private(set) var isBuffering = false
     
     /// The total length of the currently playing item.
     @Published public var length = CMTime(seconds: 0, preferredTimescale: 1)
+    
+    public var autoPlay = false
     
     /// Determines how many seconds the `rewind` and `skipForward` commands should skip. The default is `10.0`.
     public var seekInterval = 10.0 {
         didSet {
             guard displayInSystemPlayer else { return }
-            
             setUpSkipForwardsCommand()
             setUpSkipBackwardsCommand()
         }
@@ -55,7 +61,14 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     }
     
     /// The source URL of the media file
-    public private(set) var mediaURL: URL?
+    public var mediaURL: URL? {
+        didSet {
+            if let mediaURL = mediaURL {
+                let playerItem = AVPlayerItem(url: mediaURL)
+                self.replaceCurrentItem(with: playerItem)
+            }
+        }
+    }
     
     internal var timeObserver: Any?
     internal var subscribers: [AnyCancellable] = []
@@ -69,63 +82,39 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     }
     
     // MARK: - Initialization
-    public override init() {
+    public init(autoPlay: Bool = false, mediaURL: URL?) {
         super.init()
-        
         volume = 1.0
-    }
-    
-    /// Initialize a new `VelociPlayer` object with a `mediaURL`
-    public init(mediaURL: URL) {
-        super.init()
-        
-        let playerItem = AVPlayerItem(url: mediaURL)
-        self.replaceCurrentItem(with: playerItem)
-        
         self.mediaURL = mediaURL
-        volume = 1.0
-        
         prepareForPlayback()
-    }
-    
-    public override convenience init(url URL: URL) {
-        self.init(mediaURL: URL)
     }
     
     deinit {
         stop()
-        subscribers.removeAll()
     }
     
-    /// Start playing audio from a specified URL.
-    /// - Parameter url: The URL containing an audio file to play.
-    public func beginPlayback(from mediaURL: URL) {
-        self.mediaURL = mediaURL
-        
-        let playerItem = AVPlayerItem(url: mediaURL)
-        self.replaceCurrentItem(with: playerItem)
-        
-        prepareForPlayback()
-        
-        self.play()
-    }
-    
-    private func prepareForPlayback() {
+    internal func prepareForPlayback() {
         Task {
             await currentItem?.asset.loadValues(forKeys: ["duration"])
             
             if let duration = currentItem?.asset.duration {
                 await MainActor.run {
                     self.length = duration
+                    self.isBuffering = true
+                }
+            }
+            
+            let isLoaded = await preroll(atRate: 1.0)
+            await MainActor.run {
+                self.isBuffering = !isLoaded
+                if autoPlay {
+                    self.play()
                 }
             }
         }
-        
-        startObservingPlayer()
-        setAVCategory()
     }
     
-    private func setAVCategory() {
+    internal func setAVCategory() {
         do {
             try AVAudioSession.sharedInstance().setCategory(.playback, mode: audioMode)
             try AVAudioSession.sharedInstance().setActive(true, options: .notifyOthersOnDeactivation)
@@ -135,25 +124,31 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     }
     
     // MARK: - Player Observation
-    func onPlayerTimeChanged(time: CMTime) {
+    internal func onPlayerTimeChanged(time: CMTime) {
         self.progress = time.seconds / length.seconds
         self.currentTime = time
     }
     
-    func onPlayerTimeControlled() {
+    internal func onPlayerTimeControlled() {
         switch self.timeControlStatus {
-        case .waitingToPlayAtSpecifiedRate, .paused:
+        case .paused:
             self.isPaused = true
+            self.isBuffering = false
             Task { await updateNowPlayingForSeeking() }
         case .playing:
             self.isPaused = false
+            self.isBuffering = false
+            Task { await updateNowPlayingForSeeking() }
+        case .waitingToPlayAtSpecifiedRate:
+            self.isPaused = false
+            self.isBuffering = true
             Task { await updateNowPlayingForSeeking() }
         default:
             break
         }
     }
     
-    func startObservingPlayer() {
+    internal func startObservingPlayer() {
         timeObserver = self.addPeriodicTimeObserver(forInterval: CMTime(seconds: 0.1, preferredTimescale: 10000), queue: .main) { [weak self] time in
             self?.onPlayerTimeChanged(time: time)
         }

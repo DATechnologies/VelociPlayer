@@ -11,6 +11,7 @@ import MediaPlayer
 import Combine
 
 extension VelociPlayer {
+    // MARK: - System Integration
     @MainActor
     internal func updateNowPlayingForSeeking() {
         nowPlayingInfo?[MPNowPlayingInfoPropertyElapsedPlaybackTime] = self.currentTime().seconds
@@ -18,7 +19,6 @@ extension VelociPlayer {
         nowPlayingInfo?[MPNowPlayingInfoPropertyPlaybackRate] = self.rate
     }
     
-    // MARK: - System Integration
     internal func setUpNowPlaying() {
         setUpPlayCommand()
         setUpPauseCommand()
