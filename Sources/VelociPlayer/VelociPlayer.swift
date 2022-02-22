@@ -15,7 +15,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     /// The progress of the player: Ranges from 0 to 1.
     @Published public internal(set) var progress = 0.0
     
-    /// The  playback time of the current item.
+    /// The playback time of the current item.
     @Published public internal(set) var currentTime = CMTime(seconds: 0, preferredTimescale: 1)
     
     /// Indicates if playback is currently paused.
@@ -23,12 +23,17 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     
     /// Indicates if the player is currently loading content.
     @Published public internal(set) var isBuffering = false
+    
+    /// The furthest point of the current item that is currently buffered.
     @Published public internal(set) var bufferTime = CMTime(seconds: 0, preferredTimescale: 1)
+    
+    /// The furthest point of the current item that is currently buffered, represented at a decimal.
     @Published public internal(set) var bufferProgress = 0.0
     
     /// The total length of the currently playing item.
     @Published public internal(set) var length = CMTime(seconds: 0, preferredTimescale: 1)
     
+    /// Specifies whether the player should automatically begin playback once the item has finished loading.
     public var autoPlay = false
     
     /// Determines how many seconds the `rewind` and `skipForward` commands should skip. The default is `10.0`.
