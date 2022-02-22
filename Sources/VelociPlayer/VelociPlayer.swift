@@ -13,19 +13,21 @@ import Combine
 public class VelociPlayer: AVPlayer, ObservableObject {
     // MARK: - Variables
     /// The progress of the player: Ranges from 0 to 1.
-    @Published public private(set) var progress = 0.0
+    @Published public internal(set) var progress = 0.0
     
     /// The  playback time of the current item.
-    @Published public var currentTime = CMTime(seconds: 0, preferredTimescale: 1)
+    @Published public internal(set) var currentTime = CMTime(seconds: 0, preferredTimescale: 1)
     
     /// Indicates if playback is currently paused.
-    @Published public private(set) var isPaused = true
+    @Published public internal(set) var isPaused = true
     
     /// Indicates if the player is currently loading content.
-    @Published public private(set) var isBuffering = false
+    @Published public internal(set) var isBuffering = false
+    @Published public internal(set) var bufferTime = CMTime(seconds: 0, preferredTimescale: 1)
+    @Published public internal(set) var bufferProgress = 0.0
     
     /// The total length of the currently playing item.
-    @Published public var length = CMTime(seconds: 0, preferredTimescale: 1)
+    @Published public internal(set) var length = CMTime(seconds: 0, preferredTimescale: 1)
     
     public var autoPlay = false
     
@@ -122,94 +124,6 @@ public class VelociPlayer: AVPlayer, ObservableObject {
             try AVAudioSession.sharedInstance().setActive(true, options: .notifyOthersOnDeactivation)
         } catch {
             print("[VelociPlayer] Error while communicating with AVAudioSession", error.localizedDescription)
-        }
-    }
-    
-    // MARK: - Player Observation
-    internal func onPlayerTimeChanged(time: CMTime) {
-        self.progress = time.seconds / length.seconds
-        self.currentTime = time
-    }
-    
-    internal func onPlayerTimeControlled() {
-        switch self.timeControlStatus {
-        case .paused:
-            self.isPaused = true
-            self.isBuffering = false
-            Task { await updateNowPlayingForSeeking() }
-        case .playing:
-            self.isPaused = false
-            self.isBuffering = false
-            Task { await updateNowPlayingForSeeking() }
-        case .waitingToPlayAtSpecifiedRate:
-            self.isPaused = false
-            self.isBuffering = true
-            Task { await updateNowPlayingForSeeking() }
-        default:
-            break
-        }
-    }
-    
-    internal func statusChanged() {
-        switch self.status {
-        case .unknown:
-            break
-        case .failed:
-            break
-        case .readyToPlay:
-            prepareForPlayback()
-        @unknown default:
-            break
-        }
-    }
-    
-    internal func startObservingPlayer() {
-        timeObserver = self.addPeriodicTimeObserver(forInterval: CMTime(seconds: 0.1, preferredTimescale: 10000), queue: .main) { [weak self] time in
-            self?.onPlayerTimeChanged(time: time)
-        }
-        
-        self.publisher(for: \.timeControlStatus)
-            .sink { [weak self] time in
-                self?.onPlayerTimeControlled()
-            }
-            .store(in: &subscribers)
-        
-        NotificationCenter.default.publisher(for: .AVPlayerItemDidPlayToEndTime, object: nil)
-            .sink { [weak self] _ in
-                self?.progress = 1
-            }
-            .store(in: &subscribers)
-    }
-    
-    internal func prepareNewPlayerItem() {
-        if let mediaURL = mediaURL {
-            let playerItem = AVPlayerItem(url: mediaURL)
-            playerItem.preferredForwardBufferDuration = 10
-            self.replaceCurrentItem(with: playerItem)
-            
-            playerItem.publisher(for: \.isPlaybackBufferEmpty)
-                .sink { [weak self] isPlaybackBufferEmpty in
-                    if isPlaybackBufferEmpty {
-                        self?.bufferStatusChanged(to: .empty)
-                    }
-                }
-                .store(in: &subscribers)
-
-            playerItem.publisher(for: \.isPlaybackLikelyToKeepUp)
-                .sink { [weak self] isPlaybackLikelyToKeepUp in
-                    if isPlaybackLikelyToKeepUp {
-                        self?.bufferStatusChanged(to: .likelyToKeepUp)
-                    }
-                }
-                .store(in: &subscribers)
-
-            playerItem.publisher(for: \.isPlaybackBufferFull)
-                .sink { [weak self] isPlaybackBufferFull in
-                    if isPlaybackBufferFull {
-                        self?.bufferStatusChanged(to: .full)
-                    }
-                }
-                .store(in: &subscribers)
         }
     }
 }

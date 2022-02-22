@@ -12,14 +12,19 @@ import Combine
 
 extension VelociPlayer {
     
-    func bufferStatusChanged(to status: BufferStatus) {
+    internal func bufferStatusChanged(to status: BufferStatus) {
         switch status {
         case .empty:
-            print("[VelociPlayer]: Buffer Empty")
-        case .likelyToKeepUp:
-            print("[VelociPlayer]: Buffer Likely To Keep Up")
-        case .full:
-            print("[VelociPlayer]: Buffer Full")
+            isBuffering = true
+        case .likelyToKeepUp, .full:
+            isBuffering = false
+        }
+    }
+    
+    internal func updateBufferTime(timeRanges: [NSValue]) {
+        if let timeRange = timeRanges.first?.timeRangeValue {
+            self.bufferTime = timeRange.end
+            self.bufferProgress = timeRange.end.seconds / length.seconds
         }
     }
     
