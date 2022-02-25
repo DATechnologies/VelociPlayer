@@ -16,7 +16,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     @Published public internal(set) var progress = 0.0
     
     /// The playback time of the current item.
-    @Published public internal(set) var currentTime = CMTime(seconds: 0, preferredTimescale: 1)
+    @Published public internal(set) var time = CMTime(seconds: 0, preferredTimescale: 1)
     
     /// Indicates if playback is currently paused.
     @Published public internal(set) var isPaused = true
