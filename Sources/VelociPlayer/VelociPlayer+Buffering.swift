@@ -24,7 +24,7 @@ extension VelociPlayer {
     internal func updateBufferTime(timeRanges: [NSValue]) {
         if let timeRange = timeRanges.first?.timeRangeValue {
             self.bufferTime = timeRange.end
-            self.bufferProgress = timeRange.end.seconds / length.seconds
+            self.bufferProgress = timeRange.end.seconds / duration.seconds
         }
     }
     

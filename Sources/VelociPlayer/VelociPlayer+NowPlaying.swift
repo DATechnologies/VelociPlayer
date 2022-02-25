@@ -15,7 +15,7 @@ extension VelociPlayer {
     @MainActor
     internal func updateNowPlayingForSeeking() {
         nowPlayingInfo?[MPNowPlayingInfoPropertyElapsedPlaybackTime] = self.currentTime().seconds
-        nowPlayingInfo?[MPMediaItemPropertyPlaybackDuration] = self.length.seconds
+        nowPlayingInfo?[MPMediaItemPropertyPlaybackDuration] = self.duration.seconds
         nowPlayingInfo?[MPNowPlayingInfoPropertyPlaybackRate] = self.rate
     }
     

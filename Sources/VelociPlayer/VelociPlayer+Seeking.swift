@@ -13,7 +13,7 @@ import Combine
 extension VelociPlayer {
     // MARK: - Seeking
     public func seek(toPercent percent: Double) {
-        let seconds = self.length.seconds * percent
+        let seconds = self.duration.seconds * percent
         self.seek(to: seconds)
     }
     

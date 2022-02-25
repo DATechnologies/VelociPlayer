@@ -31,7 +31,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     @Published public internal(set) var bufferProgress = 0.0
     
     /// The total length of the currently playing item.
-    @Published public internal(set) var length = CMTime(seconds: 0, preferredTimescale: 1)
+    @Published public internal(set) var duration = CMTime(seconds: 0, preferredTimescale: 1)
     
     /// Specifies whether the player should automatically begin playback once the item has finished loading.
     public var autoPlay = false
@@ -109,7 +109,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
             
             if let duration = currentItem?.asset.duration {
                 await MainActor.run {
-                    self.length = duration
+                    self.duration = duration
                     self.isBuffering = true
                 }
             }

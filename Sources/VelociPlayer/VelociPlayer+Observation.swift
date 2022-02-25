@@ -13,7 +13,7 @@ import Combine
 extension VelociPlayer {
     // MARK: - Player Observation
     internal func onPlayerTimeChanged(time: CMTime) {
-        self.progress = time.seconds / length.seconds
+        self.progress = time.seconds / duration.seconds
         self.time = time
     }
     
