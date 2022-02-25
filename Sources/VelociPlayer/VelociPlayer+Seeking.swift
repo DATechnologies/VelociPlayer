@@ -13,12 +13,24 @@ import Combine
 extension VelociPlayer {
     // MARK: - Seeking
     public func seek(toPercent percent: Double) {
+        Task {
+            _ = await seek(toPercent: percent)
+        }
+    }
+    
+    public func seek(toPercent percent: Double) async -> Bool {
         let seconds = self.duration.seconds * percent
-        self.seek(to: seconds)
+        return await self.seek(to: seconds)
     }
     
     public func seek(to seconds: TimeInterval) {
-        self.seek(to: CMTime(seconds: seconds, preferredTimescale: 1))
+        Task {
+            await seek(to: seconds)
+        }
+    }
+    
+    public func seek(to seconds: TimeInterval) async -> Bool {
+        return await self.seek(to: CMTime(seconds: seconds, preferredTimescale: 1))
     }
     
     override public func seek(to time: CMTime) {
