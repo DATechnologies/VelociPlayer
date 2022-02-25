@@ -96,6 +96,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
                 self?.statusChanged()
             }
             .store(in: &subscribers)
+        prepareNewPlayerItem()
     }
     
     deinit {
