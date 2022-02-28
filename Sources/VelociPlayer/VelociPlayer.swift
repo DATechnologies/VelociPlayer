@@ -13,20 +13,33 @@ import Combine
 public class VelociPlayer: AVPlayer, ObservableObject {
     // MARK: - Variables
     /// The progress of the player: Ranges from 0 to 1.
-    @Published public private(set) var progress = 0.0
+    @Published public internal(set) var progress = 0.0
     
-    /// The  playback time of the current item.
-    @Published public private(set) var currentTime = CMTime(seconds: 0, preferredTimescale: 1)
-    @Published public private(set) var isPaused = true
+    /// The playback time of the current item.
+    @Published public internal(set) var time = CMTime(seconds: 0, preferredTimescale: 1)
+    
+    /// Indicates if playback is currently paused.
+    @Published public internal(set) var isPaused = true
+    
+    /// Indicates if the player is currently loading content.
+    @Published public internal(set) var isBuffering = false
+    
+    /// The furthest point of the current item that is currently buffered.
+    @Published public internal(set) var bufferTime = CMTime(seconds: 0, preferredTimescale: 1)
+    
+    /// The furthest point of the current item that is currently buffered, represented at a decimal.
+    @Published public internal(set) var bufferProgress = 0.0
     
     /// The total length of the currently playing item.
-    @Published public var length = CMTime(seconds: 0, preferredTimescale: 1)
+    @Published public internal(set) var duration = CMTime(seconds: 0, preferredTimescale: 1)
+    
+    /// Specifies whether the player should automatically begin playback once the item has finished loading.
+    public var autoPlay = false
     
     /// Determines how many seconds the `rewind` and `skipForward` commands should skip. The default is `10.0`.
     public var seekInterval = 10.0 {
         didSet {
             guard displayInSystemPlayer else { return }
-            
             setUpSkipForwardsCommand()
             setUpSkipBackwardsCommand()
         }
@@ -43,8 +56,30 @@ public class VelociPlayer: AVPlayer, ObservableObject {
         }
     }
     
+    /// Specifies the audio mode for the system. Set this to `.default` for standard audio and `.moviePlayback` for videos.
+    public var audioMode: AVAudioSession.Mode = .default {
+        didSet {
+            setAVCategory()
+        }
+    }
+    
+    /// Specifies the audio category for the system. The default is `.playback` which should work for most use cases.
+    public var audioCategory: AVAudioSession.Category = .playback {
+        didSet {
+            setAVCategory()
+        }
+    }
+    
+    public enum MediaType {
+        case audio, video
+    }
+    
     /// The source URL of the media file
-    public private(set) var mediaURL: URL?
+    public var mediaURL: URL? {
+        didSet {
+            prepareNewPlayerItem()
+        }
+    }
     
     internal var timeObserver: Any?
     internal var subscribers: [AnyCancellable] = []
@@ -58,102 +93,50 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     }
     
     // MARK: - Initialization
-    public override init() {
+    public init(autoPlay: Bool = false, mediaURL: URL? = nil) {
         super.init()
-        
         volume = 1.0
-    }
-    
-    /// Initialize a new `VelociPlayer` object with a `mediaURL`
-    public init(mediaURL: URL) {
-        super.init()
-        
-        let playerItem = AVPlayerItem(url: mediaURL)
-        self.replaceCurrentItem(with: playerItem)
-        
+        self.autoPlay = autoPlay
         self.mediaURL = mediaURL
-        volume = 1.0
-        
-        prepareForPlayback()
-    }
-    
-    public override convenience init(url URL: URL) {
-        self.init(mediaURL: URL)
+        self.publisher(for: \.status)
+            .sink { [weak self] status in
+                self?.statusChanged()
+            }
+            .store(in: &subscribers)
+        prepareNewPlayerItem()
     }
     
     deinit {
         stop()
-        subscribers.removeAll()
     }
     
-    /// Start playing audio from a specified URL.
-    /// - Parameter url: The URL containing an audio file to play.
-    public func beginPlayback(from mediaURL: URL) {
-        self.mediaURL = mediaURL
-        
-        let playerItem = AVPlayerItem(url: mediaURL)
-        self.replaceCurrentItem(with: playerItem)
-        
-        prepareForPlayback()
-        
-        self.play()
-    }
-    
-    private func prepareForPlayback() {
+    internal func prepareForPlayback() {
+        self.isBuffering = true
         Task {
             await currentItem?.asset.loadValues(forKeys: ["duration"])
             
             if let duration = currentItem?.asset.duration {
                 await MainActor.run {
-                    self.length = duration
+                    self.duration = duration
+                }
+            }
+            
+            let isLoaded = await preroll(atRate: 1.0)
+            await MainActor.run {
+                self.isBuffering = !isLoaded
+                if autoPlay {
+                    self.play()
                 }
             }
         }
-        
-        startObservingPlayer()
-        
+    }
+    
+    internal func setAVCategory() {
         do {
-            try AVAudioSession.sharedInstance().setCategory(.playback)
+            try AVAudioSession.sharedInstance().setCategory(audioCategory, mode: audioMode)
             try AVAudioSession.sharedInstance().setActive(true, options: .notifyOthersOnDeactivation)
         } catch {
             print("[VelociPlayer] Error while communicating with AVAudioSession", error.localizedDescription)
         }
-    }
-    
-    // MARK: - Player Observation
-    func onPlayerTimeChanged(time: CMTime) {
-        self.progress = time.seconds / length.seconds
-        self.currentTime = time
-    }
-    
-    func onPlayerTimeControlled() {
-        switch self.timeControlStatus {
-        case .waitingToPlayAtSpecifiedRate, .paused:
-            self.isPaused = true
-            Task { await updateNowPlayingForSeeking() }
-        case .playing:
-            self.isPaused = false
-            Task { await updateNowPlayingForSeeking() }
-        default:
-            break
-        }
-    }
-    
-    func startObservingPlayer() {
-        timeObserver = self.addPeriodicTimeObserver(forInterval: CMTime(seconds: 0.1, preferredTimescale: 10000), queue: .main) { [weak self] time in
-            self?.onPlayerTimeChanged(time: time)
-        }
-        
-        self.publisher(for: \.timeControlStatus)
-            .sink(receiveValue: { [weak self] time in
-                self?.onPlayerTimeControlled()
-            })
-            .store(in: &subscribers)
-        
-        NotificationCenter.default.publisher(for: .AVPlayerItemDidPlayToEndTime, object: nil)
-            .sink { [weak self] _ in
-                self?.progress = 1
-            }
-            .store(in: &subscribers)
     }
 }
