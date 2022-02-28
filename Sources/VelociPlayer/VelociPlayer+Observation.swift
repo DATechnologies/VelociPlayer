@@ -66,11 +66,11 @@ extension VelociPlayer {
     
     internal func prepareNewPlayerItem() {
         guard let mediaURL = mediaURL else { return }
-        guard let playerItem = AVPlayerItem(url: mediaURL) else { return }
         
+        let playerItem = AVPlayerItem(url: mediaURL)
         playerItem.preferredForwardBufferDuration = 10
-            self.replaceCurrentItem(with: playerItem)
-            
+        self.replaceCurrentItem(with: playerItem)
+        
         playerItem.publisher(for: \.isPlaybackBufferEmpty)
             .sink { [weak self] isPlaybackBufferEmpty in
                 if isPlaybackBufferEmpty {
@@ -78,7 +78,7 @@ extension VelociPlayer {
                 }
             }
             .store(in: &subscribers)
-
+        
         playerItem.publisher(for: \.isPlaybackLikelyToKeepUp)
             .sink { [weak self] isPlaybackLikelyToKeepUp in
                 if isPlaybackLikelyToKeepUp {
@@ -86,7 +86,7 @@ extension VelociPlayer {
                 }
             }
             .store(in: &subscribers)
-
+        
         playerItem.publisher(for: \.isPlaybackBufferFull)
             .sink { [weak self] isPlaybackBufferFull in
                 if isPlaybackBufferFull {
@@ -94,7 +94,7 @@ extension VelociPlayer {
                 }
             }
             .store(in: &subscribers)
-            
+        
         playerItem.publisher(for: \.loadedTimeRanges)
             .sink { [weak self] timeRanges in
                 self?.updateBufferTime(timeRanges: timeRanges)
