@@ -63,6 +63,13 @@ public class VelociPlayer: AVPlayer, ObservableObject {
         }
     }
     
+    /// Specifies the audio category for the system. The default is `.playback` which should work for most use cases.
+    public var audioCategory: AVAudioSession.Category = .playback {
+        didSet {
+            setAVCategory()
+        }
+    }
+    
     public enum MediaType {
         case audio, video
     }
@@ -104,13 +111,13 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     }
     
     internal func prepareForPlayback() {
+        self.isBuffering = true
         Task {
             await currentItem?.asset.loadValues(forKeys: ["duration"])
             
             if let duration = currentItem?.asset.duration {
                 await MainActor.run {
                     self.duration = duration
-                    self.isBuffering = true
                 }
             }
             
@@ -126,7 +133,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     
     internal func setAVCategory() {
         do {
-            try AVAudioSession.sharedInstance().setCategory(.soloAmbient, mode: audioMode)
+            try AVAudioSession.sharedInstance().setCategory(audioCategory, mode: audioMode)
             try AVAudioSession.sharedInstance().setActive(true, options: .notifyOthersOnDeactivation)
         } catch {
             print("[VelociPlayer] Error while communicating with AVAudioSession", error.localizedDescription)
