@@ -70,10 +70,6 @@ public class VelociPlayer: AVPlayer, ObservableObject {
         }
     }
     
-    public enum MediaType {
-        case audio, video
-    }
-    
     /// The source URL of the media file
     public var mediaURL: URL? {
         didSet {
