@@ -27,7 +27,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     /// The furthest point of the current item that is currently buffered.
     @Published public internal(set) var bufferTime = CMTime(seconds: 0, preferredTimescale: 1)
     
-    /// The furthest point of the current item that is currently buffered, represented at a decimal.
+    /// The furthest point of the current item that is currently buffered as a percentage: Ranges from 0 to 1.
     @Published public internal(set) var bufferProgress = 0.0
     
     /// The total length of the currently playing item.
