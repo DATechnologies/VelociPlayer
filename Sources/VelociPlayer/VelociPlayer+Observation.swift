@@ -22,18 +22,17 @@ extension VelociPlayer {
         case .paused:
             self.isPaused = true
             self.isBuffering = false
-            Task { await updateNowPlayingForSeeking() }
         case .playing:
             self.isPaused = false
             self.isBuffering = false
-            Task { await updateNowPlayingForSeeking() }
         case .waitingToPlayAtSpecifiedRate:
             self.isPaused = false
             self.isBuffering = true
-            Task { await updateNowPlayingForSeeking() }
         default:
             break
         }
+        
+        Task { await updateNowPlayingForSeeking() }
     }
     
     internal func statusChanged() {
