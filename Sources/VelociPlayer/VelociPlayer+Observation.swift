@@ -37,12 +37,10 @@ extension VelociPlayer {
     
     internal func statusChanged() {
         switch self.status {
-        case .unknown:
-            break
-        case .failed:
-            break
         case .readyToPlay:
             prepareForPlayback()
+        case .unknown, .failed:
+            break
         @unknown default:
             break
         }
@@ -67,40 +65,40 @@ extension VelociPlayer {
     }
     
     internal func prepareNewPlayerItem() {
-        if let mediaURL = mediaURL {
-            let playerItem = AVPlayerItem(url: mediaURL)
-            playerItem.preferredForwardBufferDuration = 10
+        guard let mediaURL = mediaURL else { return }
+        guard let playerItem = AVPlayerItem(url: mediaURL) else { return }
+        
+        playerItem.preferredForwardBufferDuration = 10
             self.replaceCurrentItem(with: playerItem)
             
-            playerItem.publisher(for: \.isPlaybackBufferEmpty)
-                .sink { [weak self] isPlaybackBufferEmpty in
-                    if isPlaybackBufferEmpty {
-                        self?.bufferStatusChanged(to: .empty)
-                    }
+        playerItem.publisher(for: \.isPlaybackBufferEmpty)
+            .sink { [weak self] isPlaybackBufferEmpty in
+                if isPlaybackBufferEmpty {
+                    self?.bufferStatusChanged(to: .empty)
                 }
-                .store(in: &subscribers)
+            }
+            .store(in: &subscribers)
 
-            playerItem.publisher(for: \.isPlaybackLikelyToKeepUp)
-                .sink { [weak self] isPlaybackLikelyToKeepUp in
-                    if isPlaybackLikelyToKeepUp {
-                        self?.bufferStatusChanged(to: .likelyToKeepUp)
-                    }
+        playerItem.publisher(for: \.isPlaybackLikelyToKeepUp)
+            .sink { [weak self] isPlaybackLikelyToKeepUp in
+                if isPlaybackLikelyToKeepUp {
+                    self?.bufferStatusChanged(to: .likelyToKeepUp)
                 }
-                .store(in: &subscribers)
+            }
+            .store(in: &subscribers)
 
-            playerItem.publisher(for: \.isPlaybackBufferFull)
-                .sink { [weak self] isPlaybackBufferFull in
-                    if isPlaybackBufferFull {
-                        self?.bufferStatusChanged(to: .full)
-                    }
+        playerItem.publisher(for: \.isPlaybackBufferFull)
+            .sink { [weak self] isPlaybackBufferFull in
+                if isPlaybackBufferFull {
+                    self?.bufferStatusChanged(to: .full)
                 }
-                .store(in: &subscribers)
+            }
+            .store(in: &subscribers)
             
-            playerItem.publisher(for: \.loadedTimeRanges)
-                .sink { [weak self] timeRanges in
-                    self?.updateBufferTime(timeRanges: timeRanges)
-                }
-                .store(in: &subscribers)
-        }
+        playerItem.publisher(for: \.loadedTimeRanges)
+            .sink { [weak self] timeRanges in
+                self?.updateBufferTime(timeRanges: timeRanges)
+            }
+            .store(in: &subscribers)
     }
 }
