@@ -13,12 +13,26 @@ import Combine
 extension VelociPlayer {
     // MARK: - Seeking
     public func seek(toPercent percent: Double) {
-        let seconds = self.length.seconds * percent
-        self.seek(to: seconds)
+        Task {
+            await seek(toPercent: percent)
+        }
+    }
+    
+    @discardableResult
+    public func seek(toPercent percent: Double) async -> Bool {
+        let seconds = self.duration.seconds * percent
+        return await self.seek(to: seconds)
     }
     
     public func seek(to seconds: TimeInterval) {
-        self.seek(to: CMTime(seconds: seconds, preferredTimescale: 1))
+        Task {
+            await seek(to: seconds)
+        }
+    }
+    
+    @discardableResult
+    public func seek(to seconds: TimeInterval) async -> Bool {
+        return await self.seek(to: CMTime(seconds: seconds, preferredTimescale: 1))
     }
     
     override public func seek(to time: CMTime) {
@@ -27,6 +41,7 @@ extension VelociPlayer {
         }
     }
     
+    @discardableResult
     override public func seek(to time: CMTime) async -> Bool {
         let completed = await super.seek(to: time)
         await updateNowPlayingForSeeking()
@@ -47,6 +62,7 @@ extension VelociPlayer {
         }
     }
     
+    @discardableResult
     override public func seek(
         to time: CMTime,
         toleranceBefore: CMTime,
@@ -67,6 +83,7 @@ extension VelociPlayer {
         }
     }
     
+    @discardableResult
     override public func seek(to date: Date) async -> Bool {
         let completed = await super.seek(to: date)
         await updateNowPlayingForSeeking()

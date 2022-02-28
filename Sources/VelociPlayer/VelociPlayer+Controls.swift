@@ -12,6 +12,16 @@ import Combine
 
 extension VelociPlayer {
     // MARK: - Controls
+    
+    /// Begins playback of the current item
+    public override func play() {
+        if timeObserver == nil {
+            startObservingPlayer()
+            setAVCategory()
+        }
+        super.play()
+    }
+    
     /// Rewind the player based on the `seekInterval`
     public func rewind() {
         let newTime = currentTime().seconds - self.seekInterval
