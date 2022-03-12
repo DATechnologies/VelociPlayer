@@ -22,9 +22,19 @@ extension VelociPlayer {
     internal func setUpNowPlaying() {
         setUpPlayCommand()
         setUpPauseCommand()
-        setUpSkipBackwardsCommand()
-        setUpSkipForwardsCommand()
         setUpScrubbing()
+
+        switch lockScreenConfiguration {
+        case .skipBackward_skipForward:
+            setUpSkipBackwardsCommand()
+            setUpSkipForwardsCommand()
+        case .skipBackward_nextTrack:
+            setUpSkipBackwardsCommand()
+            setUpNextTrackCommand()
+        case .previousTrack_nextTrack:
+            setUpPreviousTrackCommand()
+            setUpNextTrackCommand()
+        }
         
         UIApplication.shared.beginReceivingRemoteControlEvents()
     }
@@ -68,7 +78,7 @@ extension VelociPlayer {
         }
     }
     
-    internal func setUpSkipBackwardsCommand() {
+    private func setUpSkipBackwardsCommand() {
         let command = MPRemoteCommandCenter.shared().skipBackwardCommand
         
         command.isEnabled = true
@@ -80,7 +90,7 @@ extension VelociPlayer {
         }
     }
     
-    internal func setUpSkipForwardsCommand() {
+    private func setUpSkipForwardsCommand() {
         let command = MPRemoteCommandCenter.shared().skipForwardCommand
         
         command.isEnabled = true
@@ -88,6 +98,28 @@ extension VelociPlayer {
         command.addTarget { [weak self] _ in
             guard let self = self else { return .commandFailed }
             self.skipForward()
+            return .success
+        }
+    }
+    
+    private func setUpNextTrackCommand() {
+        let command = MPRemoteCommandCenter.shared().nextTrackCommand
+        
+        command.isEnabled = true
+        command.addTarget { [weak self] _ in
+            guard let self = self else { return .commandFailed }
+            self.onNextPressed?()
+            return .success
+        }
+    }
+    
+    private func setUpPreviousTrackCommand() {
+        let command = MPRemoteCommandCenter.shared().previousTrackCommand
+        
+        command.isEnabled = true
+        command.addTarget { [weak self] _ in
+            guard let self = self else { return .commandFailed }
+            self.onPreviousPressed?()
             return .success
         }
     }
@@ -113,7 +145,9 @@ extension VelociPlayer {
         
         setNowPlayingImage(image)
         
-        displayInSystemPlayer = true
+        if !displayInSystemPlayer {
+            displayInSystemPlayer = true
+        }
     }
     
     /// Set the image that displays in the system player which appears in Control Center, on the Lock Screen, etc.

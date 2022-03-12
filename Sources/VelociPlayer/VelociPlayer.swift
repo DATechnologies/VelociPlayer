@@ -37,13 +37,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     public var autoPlay = false
     
     /// Determines how many seconds the `rewind` and `skipForward` commands should skip. The default is `10.0`.
-    public var seekInterval = 10.0 {
-        didSet {
-            guard displayInSystemPlayer else { return }
-            setUpSkipForwardsCommand()
-            setUpSkipBackwardsCommand()
-        }
-    }
+    public var seekInterval = 10.0
     
     /// Determines whether the player should integrate with the system to allow playback controls from Control Center and the Lock Screen, among other places.
     public var displayInSystemPlayer = false {
@@ -70,12 +64,28 @@ public class VelociPlayer: AVPlayer, ObservableObject {
         }
     }
     
+    /// Locked screen control configurations
+    public enum LockedScreenControlsOption {
+        case skipBackward_skipForward
+        case skipBackward_nextTrack
+        case previousTrack_nextTrack
+    }
+    
+    /// Specifies the locked screen controls configuration.
+    public var lockScreenConfiguration: LockedScreenControlsOption = .skipBackward_skipForward
+    
     /// The source URL of the media file
     public var mediaURL: URL? {
         didSet {
             prepareNewPlayerItem()
         }
     }
+    
+    /// The action to be performed if user clicks 'next' locked screen control.
+    public var onNextPressed: (() -> Void)?
+    
+    /// The action to be performed if user clicks 'previous' locked screen control.
+    public var onPreviousPressed: (() -> Void)?
     
     internal var timeObserver: Any?
     internal var subscribers: [AnyCancellable] = []
