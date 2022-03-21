@@ -100,5 +100,9 @@ extension VelociPlayer {
                 self?.updateBufferTime(timeRanges: timeRanges)
             }
             .store(in: &subscribers)
+        
+        Task {
+            await updateCurrentItemDuration()
+        }
     }
 }

@@ -119,13 +119,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     internal func prepareForPlayback() {
         self.isBuffering = true
         Task {
-            await currentItem?.asset.loadValues(forKeys: ["duration"])
-            
-            if let duration = currentItem?.asset.duration {
-                await MainActor.run {
-                    self.duration = duration
-                }
-            }
+            await updateCurrentItemDuration()
             
             let isLoaded = await preroll(atRate: 1.0)
             await MainActor.run {
@@ -133,6 +127,16 @@ public class VelociPlayer: AVPlayer, ObservableObject {
                 if autoPlay {
                     self.play()
                 }
+            }
+        }
+    }
+    
+    internal func updateCurrentItemDuration() async {
+        await currentItem?.asset.loadValues(forKeys: ["duration"])
+        
+        if let duration = currentItem?.asset.duration {
+            await MainActor.run {
+                self.duration = duration
             }
         }
     }
