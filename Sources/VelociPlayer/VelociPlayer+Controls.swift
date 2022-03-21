@@ -52,8 +52,9 @@ extension VelociPlayer {
         
         subscribers.removeAll()
         
-        self.nowPlayingInfo = nil
+        self.displayInSystemPlayer = false
         self.pause()
+        self.seek(to: 0)
         
         do {
             try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)

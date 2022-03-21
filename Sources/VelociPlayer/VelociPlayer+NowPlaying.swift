@@ -40,6 +40,7 @@ extension VelociPlayer {
     }
     
     internal func removeFromNowPlaying() {
+        nowPlayingInfo = nil
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
         UIApplication.shared.endReceivingRemoteControlEvents()
     }
