@@ -50,6 +50,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
         }
     }
     
+    #if os(iOS)
     /// Specifies the audio mode for the system. Set this to `.default` for standard audio and `.moviePlayback` for videos.
     public var audioMode: AVAudioSession.Mode = .default {
         didSet {
@@ -63,6 +64,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
             setAVCategory()
         }
     }
+    #endif
     
     /// Locked screen control configurations
     public enum LockedScreenControlsOption {
@@ -142,11 +144,13 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     }
     
     internal func setAVCategory() {
+        #if os(iOS)
         do {
             try AVAudioSession.sharedInstance().setCategory(audioCategory, mode: audioMode)
             try AVAudioSession.sharedInstance().setActive(true, options: .notifyOthersOnDeactivation)
         } catch {
             print("[VelociPlayer] Error while communicating with AVAudioSession", error.localizedDescription)
         }
+        #endif
     }
 }
