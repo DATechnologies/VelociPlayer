@@ -35,14 +35,10 @@ extension VelociPlayer {
             setUpPreviousTrackCommand()
             setUpNextTrackCommand()
         }
-        
-        UIApplication.shared.beginReceivingRemoteControlEvents()
     }
     
     internal func removeFromNowPlaying() {
-        nowPlayingInfo = nil
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
-        UIApplication.shared.endReceivingRemoteControlEvents()
     }
     
     private func setUpScrubbing() {
@@ -54,7 +50,7 @@ extension VelociPlayer {
                   let playbackPositionEvent = event as? MPChangePlaybackPositionCommandEvent
                     else { return .commandFailed }
             
-            self.seek(to: CMTime(seconds: playbackPositionEvent.positionTime, preferredTimescale: 10000))
+            self.seek(to: CMTime(seconds: playbackPositionEvent.positionTime, preferredTimescale: 10_000))
             return .success
         }
     }
