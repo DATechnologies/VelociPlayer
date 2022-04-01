@@ -54,7 +54,6 @@ extension VelociPlayer {
         
         self.displayInSystemPlayer = false
         self.pause()
-        self.seek(to: 0)
         
         #if os(iOS)
         do {

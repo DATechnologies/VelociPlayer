@@ -19,107 +19,161 @@ extension VelociPlayer {
         nowPlayingInfo?[MPNowPlayingInfoPropertyPlaybackRate] = self.rate
     }
     
-    internal func setUpNowPlaying() {
-        setUpPlayCommand()
-        setUpPauseCommand()
-        setUpScrubbing()
-
-        switch lockScreenConfiguration {
-        case .skipBackward_skipForward:
-            setUpSkipBackwardsCommand()
-            setUpSkipForwardsCommand()
-        case .skipBackward_nextTrack:
-            setUpSkipBackwardsCommand()
-            setUpNextTrackCommand()
-        case .previousTrack_nextTrack:
-            setUpPreviousTrackCommand()
-            setUpNextTrackCommand()
+    internal func setUpNowPlayingControls() {
+        disableAllControls()
+        setUpMainControl()
+        if nowPlayingConfiguration.allowScrubbing {
+            setUpScrubbing()
         }
+        setUpPreviousControl()
+        setUpForwardControl()
     }
     
     internal func removeFromNowPlaying() {
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
     }
     
-    private func setUpScrubbing() {
+    internal func setUpMainControl() {
+        switch nowPlayingConfiguration.mainControl {
+        case .playPause:
+            setUpPlayCommand()
+            setUpPauseCommand()
+        }
+    }
+    
+    internal func setUpPreviousControl() {
+        switch nowPlayingConfiguration.previousControl {
+        case .none:
+            break
+        case .skip:
+            setUpSkipBackwardsCommand()
+        case .previousTrack(let action):
+            setUpPreviousTrackCommand(with: action)
+        }
+    }
+    
+    internal func setUpForwardControl() {
+        switch nowPlayingConfiguration.forwardControl {
+        case .none:
+            break
+        case .skip:
+            setUpSkipForwardsCommand()
+        case .nextTrack(let action):
+            setUpNextTrackCommand(with: action)
+        }
+    }
+    
+    internal func setUpScrubbing() {
         let command = MPRemoteCommandCenter.shared().changePlaybackPositionCommand
-        
         command.isEnabled = true
-        command.addTarget { [weak self] event in
+        if let target = commandTargets[command] {
+            command.removeTarget(target)
+            commandTargets.removeValue(forKey: command)
+        }
+        commandTargets[command] = command.addTarget { [weak self] event in
             guard let self = self,
                   let playbackPositionEvent = event as? MPChangePlaybackPositionCommandEvent
-                    else { return .commandFailed }
+            else {
+                return .commandFailed
+            }
             
             self.seek(to: CMTime(seconds: playbackPositionEvent.positionTime, preferredTimescale: 10_000))
             return .success
         }
     }
     
-    private func setUpPlayCommand() {
+    internal func setUpPlayCommand() {
         let command = MPRemoteCommandCenter.shared().playCommand
         command.isEnabled = true
-        command.addTarget { [weak self] _ in
+        if let target = commandTargets[command] {
+            command.removeTarget(target)
+            commandTargets.removeValue(forKey: command)
+        }
+        commandTargets[command] = command.addTarget { [weak self] _ in
             guard let self = self else { return .commandFailed }
             self.play()
             return .success
         }
     }
     
-    private func setUpPauseCommand() {
+    internal func setUpPauseCommand() {
         let command = MPRemoteCommandCenter.shared().pauseCommand
-        
         command.isEnabled = true
-        command.addTarget { [weak self] _ in
+        if let target = commandTargets[command] {
+            command.removeTarget(target)
+            commandTargets.removeValue(forKey: command)
+        }
+        commandTargets[command] = command.addTarget { [weak self] _ in
             guard let self = self else { return .commandFailed }
             self.pause()
             return .success
         }
     }
     
-    private func setUpSkipBackwardsCommand() {
+    internal func setUpSkipBackwardsCommand() {
         let command = MPRemoteCommandCenter.shared().skipBackwardCommand
-        
         command.isEnabled = true
         command.preferredIntervals = [NSNumber(value: seekInterval)]
-        command.addTarget { [weak self] _ in
+        if let target = commandTargets[command] {
+            command.removeTarget(target)
+            commandTargets.removeValue(forKey: command)
+        }
+        commandTargets[command] = command.addTarget { [weak self] _ in
             guard let self = self else { return .commandFailed }
             self.rewind()
             return .success
         }
     }
     
-    private func setUpSkipForwardsCommand() {
+    internal func setUpSkipForwardsCommand() {
         let command = MPRemoteCommandCenter.shared().skipForwardCommand
-        
         command.isEnabled = true
         command.preferredIntervals = [NSNumber(value: seekInterval)]
-        command.addTarget { [weak self] _ in
+        if let target = commandTargets[command] {
+            command.removeTarget(target)
+            commandTargets.removeValue(forKey: command)
+        }
+        commandTargets[command] = command.addTarget { [weak self] _ in
             guard let self = self else { return .commandFailed }
             self.skipForward()
             return .success
         }
     }
     
-    private func setUpNextTrackCommand() {
-        let command = MPRemoteCommandCenter.shared().nextTrackCommand
-        
+    internal func setUpPreviousTrackCommand(with action: @escaping () -> Void) {
+        let command = MPRemoteCommandCenter.shared().previousTrackCommand
         command.isEnabled = true
-        command.addTarget { [weak self] _ in
-            guard let self = self else { return .commandFailed }
-            self.onNextPressed?()
+        if let target = commandTargets[command] {
+            command.removeTarget(target)
+            commandTargets.removeValue(forKey: command)
+        }
+        commandTargets[command] = command.addTarget { _ in
+            action()
             return .success
         }
     }
     
-    private func setUpPreviousTrackCommand() {
-        let command = MPRemoteCommandCenter.shared().previousTrackCommand
-        
+    internal func setUpNextTrackCommand(with action: @escaping () -> Void) {
+        let command = MPRemoteCommandCenter.shared().nextTrackCommand
         command.isEnabled = true
-        command.addTarget { [weak self] _ in
-            guard let self = self else { return .commandFailed }
-            self.onPreviousPressed?()
+        if let target = commandTargets[command] {
+            command.removeTarget(target)
+            commandTargets.removeValue(forKey: command)
+        }
+        commandTargets[command] = command.addTarget { _ in
+            action()
             return .success
         }
+    }
+    
+    internal func disableAllControls() {
+        MPRemoteCommandCenter.shared().changePlaybackPositionCommand.isEnabled = false
+        MPRemoteCommandCenter.shared().playCommand.isEnabled = false
+        MPRemoteCommandCenter.shared().pauseCommand.isEnabled = false
+        MPRemoteCommandCenter.shared().skipBackwardCommand.isEnabled = false
+        MPRemoteCommandCenter.shared().skipForwardCommand.isEnabled = false
+        MPRemoteCommandCenter.shared().nextTrackCommand.isEnabled = false
+        MPRemoteCommandCenter.shared().previousTrackCommand.isEnabled = false
     }
     
     /// Set the information that displays in the system player which appears in Control Center, on the Lock Screen, etc. Automatically enables `displayInSystemPlayer`/

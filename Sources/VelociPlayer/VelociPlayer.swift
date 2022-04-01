@@ -37,13 +37,23 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     public var autoPlay = false
     
     /// Determines how many seconds the `rewind` and `skipForward` commands should skip. The default is `10.0`.
-    public var seekInterval = 10.0
+    public var seekInterval = 10.0 {
+        didSet {
+            guard displayInSystemPlayer else { return }
+            if case .skip = nowPlayingConfiguration.previousControl {
+                MPRemoteCommandCenter.shared().skipBackwardCommand.preferredIntervals = [NSNumber(value: seekInterval)]
+            }
+            if case .skip = nowPlayingConfiguration.forwardControl {
+                MPRemoteCommandCenter.shared().skipForwardCommand.preferredIntervals = [NSNumber(value: seekInterval)]
+            }
+        }
+    }
     
     /// Determines whether the player should integrate with the system to allow playback controls from Control Center and the Lock Screen, among other places.
     public var displayInSystemPlayer = false {
         didSet {
             if displayInSystemPlayer {
-                setUpNowPlaying()
+                setUpNowPlayingControls()
             } else {
                 removeFromNowPlaying()
             }
@@ -66,16 +76,6 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     }
     #endif
     
-    /// Locked screen control configurations
-    public enum LockedScreenControlsOption {
-        case skipBackward_skipForward
-        case skipBackward_nextTrack
-        case previousTrack_nextTrack
-    }
-    
-    /// Specifies the locked screen controls configuration.
-    public var lockScreenConfiguration: LockedScreenControlsOption = .skipBackward_skipForward
-    
     /// The source URL of the media file
     public var mediaURL: URL? {
         didSet {
@@ -83,14 +83,17 @@ public class VelociPlayer: AVPlayer, ObservableObject {
         }
     }
     
-    /// The action to be performed if user clicks 'next' locked screen control.
-    public var onNextPressed: (() -> Void)?
-    
-    /// The action to be performed if user clicks 'previous' locked screen control.
-    public var onPreviousPressed: (() -> Void)?
+    /// Specifies which controls are available to the user in the Now Playing controller.
+    public var nowPlayingConfiguration = NowPlayingConfiguration() {
+        didSet {
+            guard displayInSystemPlayer else { return }
+            setUpNowPlayingControls()
+        }
+    }
     
     internal var timeObserver: Any?
-    internal var subscribers: [AnyCancellable] = []
+    internal var subscribers = [AnyCancellable]()
+    internal var commandTargets = [MPRemoteCommand: Any]()
     
     internal var nowPlayingInfo: [String: Any]? {
         didSet {
