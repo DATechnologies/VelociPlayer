@@ -10,6 +10,16 @@ import AVFoundation
 import MediaPlayer
 import Combine
 
+#if os(iOS) || os(tvOS) || os(watchOS) || targetEnvironment(macCatalyst)
+import UIKit
+public typealias NowPlayingImage = UIImage
+#endif
+
+#if os(macOS)
+import AppKit
+public typealias NowPlayingImage = NSImage
+#endif
+
 extension VelociPlayer {
     // MARK: - System Integration
     @MainActor
@@ -186,40 +196,7 @@ extension VelociPlayer {
         title: String? = nil,
         artist: String? = nil,
         albumName: String? = nil,
-        artwork: MPMediaItemArtwork? = nil
-    ) {
-        var nowPlayingInfo = [String: Any]()
-        nowPlayingInfo[MPMediaItemPropertyTitle] = title
-        nowPlayingInfo[MPMediaItemPropertyArtist] = artist
-        nowPlayingInfo[MPMediaItemPropertyAlbumTitle] = albumName
-        nowPlayingInfo[MPMediaItemPropertyAssetURL] = mediaURL
-        self.nowPlayingInfo = nowPlayingInfo
-        
-        setNowPlayingArtwork(artwork)
-        
-        if !displayInSystemPlayer {
-            displayInSystemPlayer = true
-        }
-    }
-    
-    /// Set the image that displays in the system player which appears in Control Center, on the Lock Screen, etc.
-    /// - Parameter image: The image to display for the current item.
-    public func setNowPlayingArtwork(_ artwork: MPMediaItemArtwork?) {
-        nowPlayingInfo?[MPMediaItemPropertyArtwork] = artwork
-    }
-    
-    #if os(iOS)
-    /// Set the information that displays in the system player which appears in Control Center, on the Lock Screen, etc. Automatically enables `displayInSystemPlayer`/
-    /// - Parameters:
-    ///   - title: The title to display for the current item.
-    ///   - artist: The artist to display for the current item.
-    ///   - albumName: The album name to display for the current item.
-    ///   - image: The image to display for the current item.
-    public func setNowPlayingInfo(
-        title: String? = nil,
-        artist: String? = nil,
-        albumName: String? = nil,
-        image: UIImage? = nil
+        image: NowPlayingImage? = nil
     ) {
         var nowPlayingInfo = [String: Any]()
         nowPlayingInfo[MPMediaItemPropertyTitle] = title
@@ -237,14 +214,13 @@ extension VelociPlayer {
     
     /// Set the image that displays in the system player which appears in Control Center, on the Lock Screen, etc.
     /// - Parameter image: The image to display for the current item.
-    public func setNowPlayingImage(_ image: UIImage?) {
+    public func setNowPlayingImage(_ image: NowPlayingImage?) {
         guard let image = image else { return }
         
         nowPlayingInfo?[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: image.size) { size in
             return image
         }
     }
-    #endif
     
     /// Add a custom property for the system player.
     /// - Parameters:
