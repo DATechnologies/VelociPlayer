@@ -55,7 +55,7 @@ extension VelociPlayer {
         self.displayInSystemPlayer = false
         self.pause()
         
-        #if os(iOS)
+        #if os(iOS) || os(tvOS) || os(watchOS) || targetEnvironment(macCatalyst)
         do {
             try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
         } catch {

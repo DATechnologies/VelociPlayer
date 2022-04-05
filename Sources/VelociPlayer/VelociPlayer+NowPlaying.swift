@@ -73,14 +73,18 @@ extension VelociPlayer {
         }
     }
     
-    internal func setUpScrubbing() {
-        let command = MPRemoteCommandCenter.shared().changePlaybackPositionCommand
+    fileprivate func setUp(command: MPRemoteCommand, handler: @escaping (MPRemoteCommandEvent) -> MPRemoteCommandHandlerStatus) {
         command.isEnabled = true
         if let target = commandTargets[command] {
-            command.removeTarget(target)
-            commandTargets.removeValue(forKey: command)
+          command.removeTarget(target)
+          commandTargets.removeValue(forKey: command)
         }
-        commandTargets[command] = command.addTarget { [weak self] event in
+        commandTargets[command] = command.addTarget(handler: handler)
+    }
+    
+    internal func setUpScrubbing() {
+        let command = MPRemoteCommandCenter.shared().changePlaybackPositionCommand
+        setUp(command: command) { [weak self] event in
             guard let self = self,
                   let playbackPositionEvent = event as? MPChangePlaybackPositionCommandEvent
             else {
@@ -94,12 +98,7 @@ extension VelociPlayer {
     
     internal func setUpPlayCommand() {
         let command = MPRemoteCommandCenter.shared().playCommand
-        command.isEnabled = true
-        if let target = commandTargets[command] {
-            command.removeTarget(target)
-            commandTargets.removeValue(forKey: command)
-        }
-        commandTargets[command] = command.addTarget { [weak self] _ in
+        setUp(command: command) { [weak self] _ in
             guard let self = self else { return .commandFailed }
             self.play()
             return .success
@@ -108,12 +107,7 @@ extension VelociPlayer {
     
     internal func setUpPauseCommand() {
         let command = MPRemoteCommandCenter.shared().pauseCommand
-        command.isEnabled = true
-        if let target = commandTargets[command] {
-            command.removeTarget(target)
-            commandTargets.removeValue(forKey: command)
-        }
-        commandTargets[command] = command.addTarget { [weak self] _ in
+        setUp(command: command) { [weak self] _ in
             guard let self = self else { return .commandFailed }
             self.pause()
             return .success
@@ -122,13 +116,8 @@ extension VelociPlayer {
     
     internal func setUpSkipBackwardsCommand() {
         let command = MPRemoteCommandCenter.shared().skipBackwardCommand
-        command.isEnabled = true
         command.preferredIntervals = [NSNumber(value: seekInterval)]
-        if let target = commandTargets[command] {
-            command.removeTarget(target)
-            commandTargets.removeValue(forKey: command)
-        }
-        commandTargets[command] = command.addTarget { [weak self] _ in
+        setUp(command: command) { [weak self] _  in
             guard let self = self else { return .commandFailed }
             self.rewind()
             return .success
@@ -137,13 +126,8 @@ extension VelociPlayer {
     
     internal func setUpSkipForwardsCommand() {
         let command = MPRemoteCommandCenter.shared().skipForwardCommand
-        command.isEnabled = true
         command.preferredIntervals = [NSNumber(value: seekInterval)]
-        if let target = commandTargets[command] {
-            command.removeTarget(target)
-            commandTargets.removeValue(forKey: command)
-        }
-        commandTargets[command] = command.addTarget { [weak self] _ in
+        setUp(command: command) { [weak self] _ in
             guard let self = self else { return .commandFailed }
             self.skipForward()
             return .success
@@ -153,11 +137,7 @@ extension VelociPlayer {
     internal func setUpPreviousTrackCommand(with action: @escaping () -> Void) {
         let command = MPRemoteCommandCenter.shared().previousTrackCommand
         command.isEnabled = true
-        if let target = commandTargets[command] {
-            command.removeTarget(target)
-            commandTargets.removeValue(forKey: command)
-        }
-        commandTargets[command] = command.addTarget { _ in
+        setUp(command: command) { _ in
             action()
             return .success
         }
@@ -166,11 +146,7 @@ extension VelociPlayer {
     internal func setUpNextTrackCommand(with action: @escaping () -> Void) {
         let command = MPRemoteCommandCenter.shared().nextTrackCommand
         command.isEnabled = true
-        if let target = commandTargets[command] {
-            command.removeTarget(target)
-            commandTargets.removeValue(forKey: command)
-        }
-        commandTargets[command] = command.addTarget { _ in
+        setUp(command: command) { _ in
             action()
             return .success
         }

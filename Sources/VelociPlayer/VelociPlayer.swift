@@ -13,7 +13,11 @@ import Combine
 public class VelociPlayer: AVPlayer, ObservableObject {
     // MARK: - Variables
     /// The progress of the player: Ranges from 0 to 1.
-    @Published public internal(set) var progress = 0.0
+    @Published public internal(set) var progress = 0.0 {
+        didSet {
+            progress = simd_clamp(bufferProgress, 0, 1)
+        }
+    }
     
     /// The playback time of the current item.
     @Published public internal(set) var time = CMTime(seconds: 0, preferredTimescale: 1)
@@ -28,7 +32,11 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     @Published public internal(set) var bufferTime = CMTime(seconds: 0, preferredTimescale: 1)
     
     /// The furthest point of the current item that is currently buffered as a percentage: Ranges from 0 to 1.
-    @Published public internal(set) var bufferProgress = 0.0
+    @Published public internal(set) var bufferProgress = 0.0 {
+        didSet {
+            bufferProgress = simd_clamp(bufferProgress, 0, 1)
+        }
+    }
     
     /// The total length of the currently playing item.
     @Published public internal(set) var duration = CMTime(seconds: 0, preferredTimescale: 1)
@@ -60,7 +68,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
         }
     }
     
-    #if os(iOS)
+    #if os(iOS) || os(tvOS) || os(watchOS) || targetEnvironment(macCatalyst)
     /// Specifies the audio mode for the system. Set this to `.default` for standard audio and `.moviePlayback` for videos.
     public var audioMode: AVAudioSession.Mode = .default {
         didSet {
@@ -147,7 +155,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     }
     
     internal func setAVCategory() {
-        #if os(iOS)
+        #if os(iOS) || os(tvOS) || os(watchOS) || targetEnvironment(macCatalyst)
         do {
             try AVAudioSession.sharedInstance().setCategory(audioCategory, mode: audioMode)
             try AVAudioSession.sharedInstance().setActive(true, options: .notifyOthersOnDeactivation)

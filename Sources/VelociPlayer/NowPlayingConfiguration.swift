@@ -38,7 +38,12 @@ public struct NowPlayingConfiguration {
     public var mainControl: MainControl
     
     // MARK: - Initialization
-    public init(allowScrubbing: Bool = true, previousControl: PreviousControl? = .skip, forwardControl: ForwardControl? = .skip, mainControl: MainControl = .playPause) {
+    public init(
+        allowScrubbing: Bool = true,
+        previousControl: PreviousControl? = .skip,
+        forwardControl: ForwardControl? = .skip,
+        mainControl: MainControl = .playPause
+    ) {
         self.allowScrubbing = allowScrubbing
         self.previousControl = previousControl
         self.forwardControl = forwardControl
