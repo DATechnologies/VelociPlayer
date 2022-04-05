@@ -16,7 +16,7 @@ extension VelociPlayer {
         guard let srtString = String(data: srtData, encoding: .utf8) else {
             throw VelociPlayerError.invalidSRT
         }
-        setUpCaptions(for: srtString)
+        try setUpCaptions(for: srtString)
     }
     
     /// Decodes a provided SRT file and prepares VelociPlayer to provide captions through playback.
