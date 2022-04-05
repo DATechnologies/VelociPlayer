@@ -47,7 +47,10 @@ extension VelociPlayer {
     }
     
     internal func startObservingPlayer() {
-        timeObserver = self.addPeriodicTimeObserver(forInterval: CMTime(seconds: 0.1, preferredTimescale: 10000), queue: .main) { [weak self] time in
+        timeObserver = self.addPeriodicTimeObserver(
+            forInterval: CMTime(seconds: 0.1, preferredTimescale: 10_000),
+            queue: .main
+        ) { [weak self] time in
             self?.onPlayerTimeChanged(time: time)
         }
         
@@ -100,5 +103,9 @@ extension VelociPlayer {
                 self?.updateBufferTime(timeRanges: timeRanges)
             }
             .store(in: &subscribers)
+        
+        Task {
+            await updateCurrentItemDuration()
+        }
     }
 }

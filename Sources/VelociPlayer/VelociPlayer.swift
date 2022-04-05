@@ -13,7 +13,11 @@ import Combine
 public class VelociPlayer: AVPlayer, ObservableObject {
     // MARK: - Variables
     /// The progress of the player: Ranges from 0 to 1.
-    @Published public internal(set) var progress = 0.0
+    @Published public internal(set) var progress = 0.0 {
+        didSet {
+            progress = simd_clamp(bufferProgress, 0, 1)
+        }
+    }
     
     /// The playback time of the current item.
     @Published public internal(set) var time = CMTime(seconds: 0, preferredTimescale: 1)
@@ -27,8 +31,12 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     /// The furthest point of the current item that is currently buffered.
     @Published public internal(set) var bufferTime = CMTime(seconds: 0, preferredTimescale: 1)
     
-    /// The furthest point of the current item that is currently buffered, represented at a decimal.
-    @Published public internal(set) var bufferProgress = 0.0
+    /// The furthest point of the current item that is currently buffered as a percentage: Ranges from 0 to 1.
+    @Published public internal(set) var bufferProgress = 0.0 {
+        didSet {
+            bufferProgress = simd_clamp(bufferProgress, 0, 1)
+        }
+    }
     
     /// The total length of the currently playing item.
     @Published public internal(set) var duration = CMTime(seconds: 0, preferredTimescale: 1)
@@ -40,8 +48,12 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     public var seekInterval = 10.0 {
         didSet {
             guard displayInSystemPlayer else { return }
-            setUpSkipForwardsCommand()
-            setUpSkipBackwardsCommand()
+            if case .skip = nowPlayingConfiguration.previousControl {
+                MPRemoteCommandCenter.shared().skipBackwardCommand.preferredIntervals = [NSNumber(value: seekInterval)]
+            }
+            if case .skip = nowPlayingConfiguration.forwardControl {
+                MPRemoteCommandCenter.shared().skipForwardCommand.preferredIntervals = [NSNumber(value: seekInterval)]
+            }
         }
     }
     
@@ -49,13 +61,14 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     public var displayInSystemPlayer = false {
         didSet {
             if displayInSystemPlayer {
-                setUpNowPlaying()
+                setUpNowPlayingControls()
             } else {
                 removeFromNowPlaying()
             }
         }
     }
     
+    #if os(iOS) || os(tvOS) || os(watchOS) || targetEnvironment(macCatalyst)
     /// Specifies the audio mode for the system. Set this to `.default` for standard audio and `.moviePlayback` for videos.
     public var audioMode: AVAudioSession.Mode = .default {
         didSet {
@@ -69,6 +82,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
             setAVCategory()
         }
     }
+    #endif
     
     /// The source URL of the media file
     public var mediaURL: URL? {
@@ -77,8 +91,17 @@ public class VelociPlayer: AVPlayer, ObservableObject {
         }
     }
     
+    /// Specifies which controls are available to the user in the Now Playing controller.
+    public var nowPlayingConfiguration = NowPlayingConfiguration() {
+        didSet {
+            guard displayInSystemPlayer else { return }
+            setUpNowPlayingControls()
+        }
+    }
+    
     internal var timeObserver: Any?
-    internal var subscribers: [AnyCancellable] = []
+    internal var subscribers = [AnyCancellable]()
+    internal var commandTargets = [MPRemoteCommand: Any]()
     
     internal var nowPlayingInfo: [String: Any]? {
         didSet {
@@ -109,13 +132,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     internal func prepareForPlayback() {
         self.isBuffering = true
         Task {
-            await currentItem?.asset.loadValues(forKeys: ["duration"])
-            
-            if let duration = currentItem?.asset.duration {
-                await MainActor.run {
-                    self.duration = duration
-                }
-            }
+            await updateCurrentItemDuration()
             
             let isLoaded = await preroll(atRate: 1.0)
             await MainActor.run {
@@ -127,12 +144,24 @@ public class VelociPlayer: AVPlayer, ObservableObject {
         }
     }
     
+    internal func updateCurrentItemDuration() async {
+        await currentItem?.asset.loadValues(forKeys: ["duration"])
+        
+        if let duration = currentItem?.asset.duration {
+            await MainActor.run {
+                self.duration = duration
+            }
+        }
+    }
+    
     internal func setAVCategory() {
+        #if os(iOS) || os(tvOS) || os(watchOS) || targetEnvironment(macCatalyst)
         do {
             try AVAudioSession.sharedInstance().setCategory(audioCategory, mode: audioMode)
             try AVAudioSession.sharedInstance().setActive(true, options: .notifyOthersOnDeactivation)
         } catch {
             print("[VelociPlayer] Error while communicating with AVAudioSession", error.localizedDescription)
         }
+        #endif
     }
 }
