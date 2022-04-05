@@ -15,6 +15,7 @@ extension VelociPlayer {
     internal func onPlayerTimeChanged(time: CMTime) {
         self.progress = time.seconds / duration.seconds
         self.time = time
+        updateCaptions(time: time)
     }
     
     internal func onPlayerTimeControlled() {

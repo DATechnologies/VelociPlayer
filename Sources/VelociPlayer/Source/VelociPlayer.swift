@@ -41,6 +41,9 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     /// The total length of the currently playing item.
     @Published public internal(set) var duration = CMTime(seconds: 0, preferredTimescale: 1)
     
+    /// The caption that should currently be displayed.
+    @Published public internal(set) var currentCaption: Caption?
+    
     /// Specifies whether the player should automatically begin playback once the item has finished loading.
     public var autoPlay = false
     
@@ -102,6 +105,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     internal var timeObserver: Any?
     internal var subscribers = [AnyCancellable]()
     internal var commandTargets = [MPRemoteCommand: Any]()
+    internal var allCaptions: [Caption]?
     
     internal var nowPlayingInfo: [String: Any]? {
         didSet {
