@@ -9,7 +9,7 @@ import Foundation
 import CoreMedia
 
 public struct Caption {
-    let id: Int?
-    let displayRange: ClosedRange<CMTime>
-    let text: String?
+    public let id: Int?
+    public let displayRange: ClosedRange<CMTime>
+    public let text: String?
 }
