@@ -30,7 +30,7 @@ extension VelociPlayer {
     }
     
     internal func setUpNowPlayingControls() {
-        disableAllControls()
+        disableAllCommands()
         setUpMainControl()
         if nowPlayingConfiguration.allowScrubbing {
             setUpScrubbing()
@@ -152,14 +152,11 @@ extension VelociPlayer {
         }
     }
     
-    internal func disableAllControls() {
-        MPRemoteCommandCenter.shared().changePlaybackPositionCommand.isEnabled = false
-        MPRemoteCommandCenter.shared().playCommand.isEnabled = false
-        MPRemoteCommandCenter.shared().pauseCommand.isEnabled = false
-        MPRemoteCommandCenter.shared().skipBackwardCommand.isEnabled = false
-        MPRemoteCommandCenter.shared().skipForwardCommand.isEnabled = false
-        MPRemoteCommandCenter.shared().nextTrackCommand.isEnabled = false
-        MPRemoteCommandCenter.shared().previousTrackCommand.isEnabled = false
+    internal func disableAllCommands() {
+        for (command, target) in commandTargets {
+          command.isEnabled = false
+          command.removeTarget(target)
+        }
     }
     
     /// Set the information that displays in the system player which appears in Control Center, on the Lock Screen, etc. Automatically enables `displayInSystemPlayer`/
