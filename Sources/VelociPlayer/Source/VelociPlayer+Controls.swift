@@ -35,6 +35,7 @@ extension VelociPlayer {
     }
     
     /// Toggles playback for the current item.
+    @MainActor
     public func togglePlayback() {
         if isPaused {
             play()

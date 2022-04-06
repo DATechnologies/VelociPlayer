@@ -12,19 +12,23 @@ import Combine
 
 extension VelociPlayer {
     
-    internal func bufferStatusChanged(to status: BufferStatus) {
-        switch status {
-        case .empty:
-            isBuffering = true
-        case .likelyToKeepUp, .full:
-            isBuffering = false
+    internal func bufferStatusChanged(to status: BufferStatus) async {
+        await MainActor.run {
+            switch status {
+            case .empty:
+                isBuffering = true
+            case .likelyToKeepUp, .full:
+                isBuffering = false
+            }
         }
     }
     
-    internal func updateBufferTime(timeRanges: [NSValue]) {
-        if let timeRange = timeRanges.first?.timeRangeValue {
-            self.bufferTime = timeRange.end
-            self.bufferProgress = timeRange.end.seconds / duration.seconds
+    internal func updateBufferTime(timeRanges: [NSValue]) async {
+        await MainActor.run {
+            if let timeRange = timeRanges.first?.timeRangeValue {
+                self.bufferTime = timeRange.end
+                self.bufferProgress = timeRange.end.seconds / duration.seconds
+            }
         }
     }
     

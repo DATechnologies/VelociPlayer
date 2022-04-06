@@ -12,49 +12,56 @@ extension VelociPlayer {
     
     /// Decodes a provided SRT file and prepares VelociPlayer to provide captions through playback.
     /// - Parameter srtData: An SRT file represented as `Data`.
-    public func setUpCaptions(for srtData: Data) throws {
+    public func setUpCaptions(for srtData: Data) async throws {
         guard let srtString = String(data: srtData, encoding: .utf8) else {
             throw VelociPlayerError.invalidSRT
         }
-        try setUpCaptions(for: srtString)
+        try await setUpCaptions(for: srtString)
     }
     
     /// Decodes a provided SRT file and prepares VelociPlayer to provide captions through playback.
     /// - Parameter srtString: An SRT file represented as a `String`.
-    public func setUpCaptions(for srtString: String) throws {
+    public func setUpCaptions(for srtString: String) async throws {
         let captions = CaptionDecoder.getCaptions(for: srtString)
         guard !captions.isEmpty else {
             throw VelociPlayerError.invalidSRT
         }
-        currentCaption = nil
+        await MainActor.run {
+            currentCaption = nil
+        }
         allCaptions = captions
     }
     
     /// Removes any active captions.
+    @MainActor
     public func removeCaptions() {
         currentCaption = nil
         allCaptions = nil
     }
     
-    internal func updateCaptions(time: CMTime) {
+    internal func updateCaptions(time: CMTime) async {
         // Make sure we don't perform extraneous searches if we know the current caption should be displayed.
         guard let allCaptions = allCaptions,
-              !(currentCaption?.displayRange.contains(time) ?? false)
+              !(await currentCaption?.displayRange.contains(time) ?? false)
         else {
             return
         }
         
         // Additionally, make sure we don't search if the current time is past the last caption.
         guard time <= allCaptions.last?.displayRange.upperBound ?? CMTime.zero else {
-            if currentCaption != nil {
-                currentCaption = nil
+            if await currentCaption != nil {
+                await MainActor.run {
+                    currentCaption = nil
+                }
             }
             return
         }
         
         // Search for the current caption using binary search to be as efficient as possible.
-        currentCaption = captionBinarySearch(for: time)
-        print(currentCaption as Any)
+        let newCurrentCaption = captionBinarySearch(for: time)
+        await MainActor.run {
+            currentCaption = newCurrentCaption
+        }
     }
     
     internal func captionBinarySearch(for time: CMTime, bottom: Int = 0, top: Int? = nil) -> Caption? {

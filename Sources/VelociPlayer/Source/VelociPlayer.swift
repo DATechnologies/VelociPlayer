@@ -13,36 +13,36 @@ import Combine
 public class VelociPlayer: AVPlayer, ObservableObject {
     // MARK: - Variables
     /// The progress of the player: Ranges from 0 to 1.
-    @Published public internal(set) var progress = 0.0 {
-        didSet {
-            progress = simd_clamp(bufferProgress, 0, 1)
-        }
-    }
+    @Published @MainActor
+    public internal(set) var progress = 0.0
     
     /// The playback time of the current item.
-    @Published public internal(set) var time = CMTime(seconds: 0, preferredTimescale: 1)
+    @Published @MainActor
+    public internal(set) var time = CMTime(seconds: 0, preferredTimescale: 1)
     
     /// Indicates if playback is currently paused.
-    @Published public internal(set) var isPaused = true
+    @Published @MainActor
+    public internal(set) var isPaused = true
     
     /// Indicates if the player is currently loading content.
-    @Published public internal(set) var isBuffering = false
+    @Published @MainActor
+    public internal(set) var isBuffering = false
     
     /// The furthest point of the current item that is currently buffered.
-    @Published public internal(set) var bufferTime = CMTime(seconds: 0, preferredTimescale: 1)
+    @Published @MainActor
+    public internal(set) var bufferTime = CMTime(seconds: 0, preferredTimescale: 1)
     
     /// The furthest point of the current item that is currently buffered as a percentage: Ranges from 0 to 1.
-    @Published public internal(set) var bufferProgress = 0.0 {
-        didSet {
-            bufferProgress = simd_clamp(bufferProgress, 0, 1)
-        }
-    }
+    @Published @MainActor
+    public internal(set) var bufferProgress = 0.0
     
     /// The total length of the currently playing item.
-    @Published public internal(set) var duration = CMTime(seconds: 0, preferredTimescale: 1)
+    @Published @MainActor
+    public internal(set) var duration = CMTime(seconds: 0, preferredTimescale: 1)
     
     /// The caption that should currently be displayed.
-    @Published public internal(set) var currentCaption: Caption?
+    @Published @MainActor
+    public internal(set) var currentCaption: Caption?
     
     /// Specifies whether the player should automatically begin playback once the item has finished loading.
     public var autoPlay = false
@@ -122,8 +122,10 @@ public class VelociPlayer: AVPlayer, ObservableObject {
         self.autoPlay = autoPlay
         self.mediaURL = mediaURL
         self.publisher(for: \.status)
-            .sink { [weak self] status in
-                self?.statusChanged()
+            .sink { [weak self] _ in
+                Task { [weak self] in
+                    await self?.statusChanged()
+                }
             }
             .store(in: &subscribers)
         prepareNewPlayerItem()
@@ -133,6 +135,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
         stop()
     }
     
+    @MainActor
     internal func prepareForPlayback() {
         self.isBuffering = true
         Task {
