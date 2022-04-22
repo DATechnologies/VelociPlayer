@@ -47,6 +47,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     /// Specifies whether the player should automatically begin playback once the item has finished loading.
     public var autoPlay = false
     
+    /// Specifies the time at which the player should start playback.
     public var startTime: VPTime?
     
     /// Determines how many seconds the `rewind` and `skipForward` commands should skip. The default is `10.0`.
@@ -127,6 +128,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
         volume = 1.0
         self.autoPlay = autoPlay
         self.mediaURL = mediaURL
+        self.startTime = startTime
         self.publisher(for: \.status)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
