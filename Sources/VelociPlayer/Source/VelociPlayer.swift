@@ -10,14 +10,17 @@ import AVFoundation
 import MediaPlayer
 import Combine
 
+public typealias VPTime = CMTime
+
 @MainActor
 public class VelociPlayer: AVPlayer, ObservableObject {
+    
     // MARK: - Variables
     /// The progress of the player: Ranges from 0 to 1.
     @Published public internal(set) var progress = 0.0
     
     /// The playback time of the current item.
-    @Published public internal(set) var time = CMTime(seconds: 0, preferredTimescale: 1)
+    @Published public internal(set) var time = VPTime(seconds: 0, preferredTimescale: 1)
     
     /// Indicates if playback is currently paused.
     @Published public internal(set) var isPaused = true
@@ -26,13 +29,13 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     @Published public internal(set) var isBuffering = false
     
     /// The furthest point of the current item that is currently buffered.
-    @Published public internal(set) var bufferTime = CMTime(seconds: 0, preferredTimescale: 1)
+    @Published public internal(set) var bufferTime = VPTime(seconds: 0, preferredTimescale: 1)
     
     /// The furthest point of the current item that is currently buffered as a percentage: Ranges from 0 to 1.
     @Published public internal(set) var bufferProgress = 0.0
     
     /// The total length of the currently playing item.
-    @Published public internal(set) var duration = CMTime(seconds: 0, preferredTimescale: 1)
+    @Published public internal(set) var duration = VPTime(seconds: 0, preferredTimescale: 1)
     
     /// The caption that should currently be displayed.
     @Published public internal(set) var currentCaption: Caption?
@@ -43,7 +46,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     /// Specifies whether the player should automatically begin playback once the item has finished loading.
     public var autoPlay = false
     
-    public var startTime: CMTime?
+    public var startTime: VPTime?
     
     /// Determines how many seconds the `rewind` and `skipForward` commands should skip. The default is `10.0`.
     public var seekInterval = 10.0 {
@@ -117,7 +120,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     public init(
         autoPlay: Bool = false,
         mediaURL: URL? = nil,
-        startTime: CMTime? = nil
+        startTime: VPTime? = nil
     ) {
         super.init()
         volume = 1.0

@@ -57,8 +57,8 @@ internal enum CaptionDecoder {
         // Go back through the array and fill in any time gaps with empty captions.
         for index in 0 ..< sortedCaptions.count {
             let caption = sortedCaptions[index]
-            if index == 0 && caption.displayRange.lowerBound != CMTime.zero {
-                let startCaption = Caption(id: nil, displayRange: CMTime.zero ... caption.displayRange.lowerBound, text: nil)
+            if index == 0 && caption.displayRange.lowerBound != VPTime.zero {
+                let startCaption = Caption(id: nil, displayRange: VPTime.zero ... caption.displayRange.lowerBound, text: nil)
                 sortedCaptions.insert(startCaption, at: 0)
             } else if index != sortedCaptions.endIndex - 1 {
                 let nextCaption = sortedCaptions[index + 1]
@@ -86,10 +86,10 @@ internal enum CaptionDecoder {
         
         // Time scale must be 10,000 so we don't ignore the milliseconds
         let startTimeInterval = startDate.timeIntervalSince(baseDate)
-        let startTime = CMTime(seconds: startTimeInterval, preferredTimescale: 10_000)
+        let startTime = VPTime(seconds: startTimeInterval, preferredTimescale: 10_000)
         
         let endTimeInterval = endDate.timeIntervalSince(baseDate)
-        let endTime = CMTime(seconds: endTimeInterval, preferredTimescale: 10_000)
+        let endTime = VPTime(seconds: endTimeInterval, preferredTimescale: 10_000)
         
         let cutCaptionText = captionText.trimmingCharacters(in: .newlines)
         
