@@ -10,6 +10,7 @@ import AVFoundation
 import MediaPlayer
 import Combine
 
+// This typealias allows client applications to use this type without importing `CMTime`
 public typealias VPTime = CMTime
 
 @MainActor
@@ -169,11 +170,15 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     
     internal func setAVCategory() {
         #if os(iOS) || os(tvOS) || os(watchOS) || targetEnvironment(macCatalyst)
-        do {
-            try AVAudioSession.sharedInstance().setCategory(audioCategory, mode: audioMode)
-            try AVAudioSession.sharedInstance().setActive(true, options: .notifyOthersOnDeactivation)
-        } catch {
-            print("[VelociPlayer] Error while communicating with AVAudioSession", error.localizedDescription)
+        let audioCategory = self.audioCategory
+        let audioMode = self.audioMode
+        Task.detached { [audioCategory, audioMode] in
+            do {
+                try AVAudioSession.sharedInstance().setCategory(audioCategory, mode: audioMode)
+                try AVAudioSession.sharedInstance().setActive(true, options: .notifyOthersOnDeactivation)
+            } catch {
+                print("[VelociPlayer] Error while communicating with AVAudioSession", error.localizedDescription)
+            }
         }
         #endif
     }

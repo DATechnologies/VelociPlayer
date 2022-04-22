@@ -56,10 +56,12 @@ extension VelociPlayer {
         self.pause()
         
         #if os(iOS) || os(tvOS) || os(watchOS) || targetEnvironment(macCatalyst)
-        do {
-            try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
-        } catch {
-            print("[VelociPlayer] Error while communicating with AVAudioSession", error.localizedDescription)
+        Task.detached {
+            do {
+                try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+            } catch {
+                print("[VelociPlayer] Error while communicating with AVAudioSession", error.localizedDescription)
+            }
         }
         #endif
     }
