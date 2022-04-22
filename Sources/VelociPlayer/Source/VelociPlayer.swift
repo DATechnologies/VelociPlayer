@@ -10,14 +10,11 @@ import AVFoundation
 import MediaPlayer
 import Combine
 
+@MainActor
 public class VelociPlayer: AVPlayer, ObservableObject {
     // MARK: - Variables
     /// The progress of the player: Ranges from 0 to 1.
-    @Published public internal(set) var progress = 0.0 {
-        didSet {
-            progress = simd_clamp(bufferProgress, 0, 1)
-        }
-    }
+    @Published public internal(set) var progress = 0.0
     
     /// The playback time of the current item.
     @Published public internal(set) var time = CMTime(seconds: 0, preferredTimescale: 1)
@@ -32,14 +29,16 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     @Published public internal(set) var bufferTime = CMTime(seconds: 0, preferredTimescale: 1)
     
     /// The furthest point of the current item that is currently buffered as a percentage: Ranges from 0 to 1.
-    @Published public internal(set) var bufferProgress = 0.0 {
-        didSet {
-            bufferProgress = simd_clamp(bufferProgress, 0, 1)
-        }
-    }
+    @Published public internal(set) var bufferProgress = 0.0
     
     /// The total length of the currently playing item.
     @Published public internal(set) var duration = CMTime(seconds: 0, preferredTimescale: 1)
+    
+    /// The caption that should currently be displayed.
+    @Published public internal(set) var currentCaption: Caption?
+    
+    /// An error property that updates whenever the player encounters an error
+    @Published public internal(set) var currentError: VelociPlayerError?
     
     /// Specifies whether the player should automatically begin playback once the item has finished loading.
     public var autoPlay = false
@@ -102,6 +101,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     internal var timeObserver: Any?
     internal var subscribers = [AnyCancellable]()
     internal var commandTargets = [MPRemoteCommand: Any]()
+    internal var allCaptions: [Caption]?
     
     internal var nowPlayingInfo: [String: Any]? {
         didSet {
@@ -118,7 +118,8 @@ public class VelociPlayer: AVPlayer, ObservableObject {
         self.autoPlay = autoPlay
         self.mediaURL = mediaURL
         self.publisher(for: \.status)
-            .sink { [weak self] status in
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
                 self?.statusChanged()
             }
             .store(in: &subscribers)
@@ -126,19 +127,24 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     }
     
     deinit {
-        stop()
+        Task { @MainActor in
+            stop()
+        }
     }
     
     internal func prepareForPlayback() {
         self.isBuffering = true
-        Task {
-            await updateCurrentItemDuration()
+        Task.detached {
+            let isLoaded = await self.preroll(atRate: 1.0)
             
-            let isLoaded = await preroll(atRate: 1.0)
             await MainActor.run {
-                self.isBuffering = !isLoaded
-                if autoPlay {
-                    self.play()
+                if isLoaded {
+                    self.isBuffering = true
+                    if self.autoPlay {
+                        self.play()
+                    }
+                } else {
+                    self.currentError = .unableToBuffer
                 }
             }
         }
@@ -148,9 +154,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
         await currentItem?.asset.loadValues(forKeys: ["duration"])
         
         if let duration = currentItem?.asset.duration {
-            await MainActor.run {
-                self.duration = duration
-            }
+            self.duration = duration
         }
     }
     

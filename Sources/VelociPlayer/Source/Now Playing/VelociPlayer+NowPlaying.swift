@@ -22,7 +22,6 @@ public typealias NowPlayingImage = NSImage
 
 extension VelociPlayer {
     // MARK: - System Integration
-    @MainActor
     internal func updateNowPlayingForSeeking() {
         nowPlayingInfo?[MPNowPlayingInfoPropertyElapsedPlaybackTime] = self.currentTime().seconds
         nowPlayingInfo?[MPMediaItemPropertyPlaybackDuration] = self.duration.seconds
