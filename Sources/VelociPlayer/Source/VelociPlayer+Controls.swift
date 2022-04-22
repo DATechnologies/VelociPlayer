@@ -57,11 +57,7 @@ extension VelociPlayer {
         
         #if os(iOS) || os(tvOS) || os(watchOS) || targetEnvironment(macCatalyst)
         Task.detached {
-            do {
-                try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
-            } catch {
-                print("[VelociPlayer] Error while communicating with AVAudioSession", error.localizedDescription)
-            }
+            try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
         }
         #endif
     }

@@ -173,12 +173,8 @@ public class VelociPlayer: AVPlayer, ObservableObject {
         let audioCategory = self.audioCategory
         let audioMode = self.audioMode
         Task.detached { [audioCategory, audioMode] in
-            do {
-                try AVAudioSession.sharedInstance().setCategory(audioCategory, mode: audioMode)
-                try AVAudioSession.sharedInstance().setActive(true, options: .notifyOthersOnDeactivation)
-            } catch {
-                print("[VelociPlayer] Error while communicating with AVAudioSession", error.localizedDescription)
-            }
+            try? AVAudioSession.sharedInstance().setCategory(audioCategory, mode: audioMode)
+            try? AVAudioSession.sharedInstance().setActive(true, options: .notifyOthersOnDeactivation)
         }
         #endif
     }
