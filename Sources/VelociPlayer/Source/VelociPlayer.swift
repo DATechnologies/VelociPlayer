@@ -135,12 +135,6 @@ public class VelociPlayer: AVPlayer, ObservableObject {
         prepareNewPlayerItem()
     }
     
-    deinit {
-        Task { @MainActor in
-            stop()
-        }
-    }
-    
     internal func prepareForPlayback() {
         self.isBuffering = true
         Task.detached {
