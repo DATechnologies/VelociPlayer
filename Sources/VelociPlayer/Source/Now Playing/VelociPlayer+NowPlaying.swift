@@ -90,7 +90,7 @@ extension VelociPlayer {
                 return .commandFailed
             }
             
-            self.seek(to: CMTime(seconds: playbackPositionEvent.positionTime, preferredTimescale: 10_000))
+            self.seek(to: VPTime(seconds: playbackPositionEvent.positionTime, preferredTimescale: 10_000))
             return .success
         }
     }

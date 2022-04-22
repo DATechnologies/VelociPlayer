@@ -38,7 +38,7 @@ extension VelociPlayer {
         allCaptions = nil
     }
     
-    internal func updateCaptions(time: CMTime) async {
+    internal func updateCaptions(time: VPTime) async {
         // Make sure we don't perform extraneous searches if we know the current caption should be displayed.
         guard let allCaptions = allCaptions,
               !(currentCaption?.displayRange.contains(time) ?? false)
@@ -47,7 +47,7 @@ extension VelociPlayer {
         }
         
         // Additionally, make sure we don't search if the current time is past the last caption.
-        guard time <= allCaptions.last?.displayRange.upperBound ?? CMTime.zero else {
+        guard time <= allCaptions.last?.displayRange.upperBound ?? VPTime.zero else {
             if currentCaption != nil {
                 await MainActor.run {
                     currentCaption = nil
@@ -63,7 +63,7 @@ extension VelociPlayer {
         }
     }
     
-    internal func captionBinarySearch(for time: CMTime, bottom: Int = 0, top: Int? = nil) -> Caption? {
+    internal func captionBinarySearch(for time: VPTime, bottom: Int = 0, top: Int? = nil) -> Caption? {
         guard let allCaptions = allCaptions else { return nil }
         
         let upperBound = top ?? allCaptions.count

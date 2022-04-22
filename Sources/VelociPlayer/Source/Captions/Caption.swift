@@ -10,6 +10,6 @@ import CoreMedia
 
 public struct Caption {
     public let id: Int?
-    public let displayRange: ClosedRange<CMTime>
+    public let displayRange: ClosedRange<VPTime>
     public let text: String?
 }

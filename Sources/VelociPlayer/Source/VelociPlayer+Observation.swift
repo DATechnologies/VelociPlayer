@@ -12,7 +12,7 @@ import Combine
 
 extension VelociPlayer {
     // MARK: - Player Observation
-    internal func onPlayerTimeChanged(time: CMTime) {
+    internal func onPlayerTimeChanged(time: VPTime) {
         self.progress = time.seconds / duration.seconds
         self.time = time
         Task.detached {
@@ -51,7 +51,7 @@ extension VelociPlayer {
     
     internal func startObservingPlayer() {
         timeObserver = self.addPeriodicTimeObserver(
-            forInterval: CMTime(seconds: 0.1, preferredTimescale: 10_000),
+            forInterval: VPTime(seconds: 0.1, preferredTimescale: 10_000),
             queue: .main
         ) { [weak self] time in
             self?.onPlayerTimeChanged(time: time)

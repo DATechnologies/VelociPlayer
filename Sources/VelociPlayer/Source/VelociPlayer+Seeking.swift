@@ -13,8 +13,8 @@ import Combine
 extension VelociPlayer {
     // MARK: - Seeking
     public func seek(toPercent percent: Double) {
-        Task {
-            await seek(toPercent: percent)
+        Task.detached {
+            await self.seek(toPercent: percent)
         }
     }
     
@@ -25,35 +25,35 @@ extension VelociPlayer {
     }
     
     public func seek(to seconds: TimeInterval) {
-        Task {
-            await seek(to: seconds)
+        Task.detached {
+            await self.seek(to: seconds)
         }
     }
     
     @discardableResult
     public func seek(to seconds: TimeInterval) async -> Bool {
-        return await self.seek(to: CMTime(seconds: seconds, preferredTimescale: 1))
+        return await self.seek(to: VPTime(seconds: seconds, preferredTimescale: 1))
     }
     
-    override public func seek(to time: CMTime) {
-        Task {
+    override public func seek(to time: VPTime) {
+        Task.detached {
             await self.seek(to: time)
         }
     }
     
     @discardableResult
-    override public func seek(to time: CMTime) async -> Bool {
+    override public func seek(to time: VPTime) async -> Bool {
         let completed = await super.seek(to: time)
         await updateNowPlayingForSeeking()
         return completed
     }
     
     override public func seek(
-        to time: CMTime,
-        toleranceBefore: CMTime,
-        toleranceAfter: CMTime
+        to time: VPTime,
+        toleranceBefore: VPTime,
+        toleranceAfter: VPTime
     ) {
-        Task {
+        Task.detached {
             await self.seek(
                 to: time,
                 toleranceBefore: toleranceBefore,
@@ -64,9 +64,9 @@ extension VelociPlayer {
     
     @discardableResult
     override public func seek(
-        to time: CMTime,
-        toleranceBefore: CMTime,
-        toleranceAfter: CMTime
+        to time: VPTime,
+        toleranceBefore: VPTime,
+        toleranceAfter: VPTime
     ) async -> Bool {
         let completed = await super.seek(
             to: time,
@@ -78,7 +78,7 @@ extension VelociPlayer {
     }
     
     override public func seek(to date: Date) {
-        Task {
+        Task.detached {
             await self.seek(to: date)
         }
     }
