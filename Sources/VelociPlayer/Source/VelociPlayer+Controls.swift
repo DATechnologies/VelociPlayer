@@ -52,13 +52,13 @@ extension VelociPlayer {
         
         subscribers.removeAll()
         
-        self.nowPlayingInfo = nil
+        self.displayInSystemPlayer = false
         self.pause()
         
-        do {
-            try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
-        } catch {
-            print("[VelociPlayer] Error while communicating with AVAudioSession", error.localizedDescription)
+        #if os(iOS) || os(tvOS) || os(watchOS) || targetEnvironment(macCatalyst)
+        Task.detached {
+            try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
         }
+        #endif
     }
 }

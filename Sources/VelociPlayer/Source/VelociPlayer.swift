@@ -10,13 +10,18 @@ import AVFoundation
 import MediaPlayer
 import Combine
 
+// This typealias allows client applications to use this type without importing `CMTime`
+public typealias VPTime = CMTime
+
+@MainActor
 public class VelociPlayer: AVPlayer, ObservableObject {
+    
     // MARK: - Variables
-    /// The progress of the player: Ranges from 0 to 1.
+    /// The playback progress of the current item: Ranges from 0 to 1.
     @Published public internal(set) var progress = 0.0
     
     /// The playback time of the current item.
-    @Published public internal(set) var time = CMTime(seconds: 0, preferredTimescale: 1)
+    @Published public internal(set) var time = VPTime(seconds: 0, preferredTimescale: 1)
     
     /// Indicates if playback is currently paused.
     @Published public internal(set) var isPaused = true
@@ -25,23 +30,36 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     @Published public internal(set) var isBuffering = false
     
     /// The furthest point of the current item that is currently buffered.
-    @Published public internal(set) var bufferTime = CMTime(seconds: 0, preferredTimescale: 1)
+    @Published public internal(set) var bufferTime = VPTime(seconds: 0, preferredTimescale: 1)
     
     /// The furthest point of the current item that is currently buffered as a percentage: Ranges from 0 to 1.
     @Published public internal(set) var bufferProgress = 0.0
     
     /// The total length of the currently playing item.
-    @Published public internal(set) var duration = CMTime(seconds: 0, preferredTimescale: 1)
+    @Published public internal(set) var duration = VPTime(seconds: 0, preferredTimescale: 1)
+    
+    /// The caption that should currently be displayed.
+    @Published public internal(set) var currentCaption: Caption?
+    
+    /// An error property that updates whenever the player encounters an error
+    @Published public internal(set) var currentError: VelociPlayerError?
     
     /// Specifies whether the player should automatically begin playback once the item has finished loading.
     public var autoPlay = false
+    
+    /// Specifies the time at which the player should start playback.
+    public var startTime: VPTime?
     
     /// Determines how many seconds the `rewind` and `skipForward` commands should skip. The default is `10.0`.
     public var seekInterval = 10.0 {
         didSet {
             guard displayInSystemPlayer else { return }
-            setUpSkipForwardsCommand()
-            setUpSkipBackwardsCommand()
+            if case .skip = nowPlayingConfiguration.previousControl {
+                MPRemoteCommandCenter.shared().skipBackwardCommand.preferredIntervals = [NSNumber(value: seekInterval)]
+            }
+            if case .skip = nowPlayingConfiguration.forwardControl {
+                MPRemoteCommandCenter.shared().skipForwardCommand.preferredIntervals = [NSNumber(value: seekInterval)]
+            }
         }
     }
     
@@ -49,13 +67,14 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     public var displayInSystemPlayer = false {
         didSet {
             if displayInSystemPlayer {
-                setUpNowPlaying()
+                setUpNowPlayingControls()
             } else {
                 removeFromNowPlaying()
             }
         }
     }
     
+    #if os(iOS) || os(tvOS) || os(watchOS) || targetEnvironment(macCatalyst)
     /// Specifies the audio mode for the system. Set this to `.default` for standard audio and `.moviePlayback` for videos.
     public var audioMode: AVAudioSession.Mode = .default {
         didSet {
@@ -69,6 +88,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
             setAVCategory()
         }
     }
+    #endif
     
     /// The source URL of the media file
     public var mediaURL: URL? {
@@ -77,8 +97,18 @@ public class VelociPlayer: AVPlayer, ObservableObject {
         }
     }
     
+    /// Specifies which controls are available to the user in the Now Playing controller.
+    public var nowPlayingConfiguration = NowPlayingConfiguration() {
+        didSet {
+            guard displayInSystemPlayer else { return }
+            setUpNowPlayingControls()
+        }
+    }
+    
     internal var timeObserver: Any?
-    internal var subscribers: [AnyCancellable] = []
+    internal var subscribers = [AnyCancellable]()
+    internal var commandTargets = [MPRemoteCommand: Any]()
+    internal var allCaptions: [Caption]?
     
     internal var nowPlayingInfo: [String: Any]? {
         didSet {
@@ -89,50 +119,65 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     }
     
     // MARK: - Initialization
-    public init(autoPlay: Bool = false, mediaURL: URL? = nil) {
+    public init(
+        autoPlay: Bool = false,
+        mediaURL: URL? = nil,
+        startTime: VPTime? = nil
+    ) {
         super.init()
         volume = 1.0
         self.autoPlay = autoPlay
         self.mediaURL = mediaURL
+        self.startTime = startTime
         self.publisher(for: \.status)
-            .sink { [weak self] status in
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
                 self?.statusChanged()
             }
             .store(in: &subscribers)
         prepareNewPlayerItem()
     }
     
-    deinit {
-        stop()
-    }
-    
     internal func prepareForPlayback() {
         self.isBuffering = true
-        Task {
-            await currentItem?.asset.loadValues(forKeys: ["duration"])
-            
-            if let duration = currentItem?.asset.duration {
-                await MainActor.run {
-                    self.duration = duration
-                }
+        Task.detached {
+            if let startTime = await self.startTime {
+               await self.seek(to: startTime)
             }
             
-            let isLoaded = await preroll(atRate: 1.0)
+            let isLoaded = await self.preroll(atRate: 1.0)
+            guard isLoaded else {
+                await MainActor.run {
+                    self.currentError = .unableToBuffer
+                }
+                return
+            }
+            
             await MainActor.run {
-                self.isBuffering = !isLoaded
-                if autoPlay {
+                self.isBuffering = true
+                if self.autoPlay {
                     self.play()
                 }
             }
         }
     }
     
-    internal func setAVCategory() {
-        do {
-            try AVAudioSession.sharedInstance().setCategory(audioCategory, mode: audioMode)
-            try AVAudioSession.sharedInstance().setActive(true, options: .notifyOthersOnDeactivation)
-        } catch {
-            print("[VelociPlayer] Error while communicating with AVAudioSession", error.localizedDescription)
+    internal func updateCurrentItemDuration() async {
+        await currentItem?.asset.loadValues(forKeys: ["duration"])
+        
+        if let duration = currentItem?.asset.duration {
+            self.duration = duration
         }
+    }
+    
+    internal func setAVCategory() {
+        #if os(iOS) || os(tvOS) || os(watchOS) || targetEnvironment(macCatalyst)
+        let audioCategory = self.audioCategory
+        let audioMode = self.audioMode
+        Task.detached { [audioCategory, audioMode] in
+            try? AVAudioSession.sharedInstance().setCategory(audioCategory, mode: audioMode)
+            try? AVAudioSession.sharedInstance().setActive(true, options: .notifyOthersOnDeactivation)
+        }
+        #endif
     }
 }
