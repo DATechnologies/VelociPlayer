@@ -20,7 +20,7 @@ extension VelociPlayer {
     
     @discardableResult
     public func seek(toPercent percent: Double) async -> Bool {
-        let seconds = await self.duration.seconds * percent
+        let seconds = self.duration.seconds * percent
         return await self.seek(to: seconds)
     }
     

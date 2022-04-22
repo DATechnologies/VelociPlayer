@@ -33,7 +33,6 @@ extension VelociPlayer {
     }
     
     /// Removes any active captions.
-    @MainActor
     public func removeCaptions() {
         currentCaption = nil
         allCaptions = nil
@@ -42,14 +41,14 @@ extension VelociPlayer {
     internal func updateCaptions(time: CMTime) async {
         // Make sure we don't perform extraneous searches if we know the current caption should be displayed.
         guard let allCaptions = allCaptions,
-              !(await currentCaption?.displayRange.contains(time) ?? false)
+              !(currentCaption?.displayRange.contains(time) ?? false)
         else {
             return
         }
         
         // Additionally, make sure we don't search if the current time is past the last caption.
         guard time <= allCaptions.last?.displayRange.upperBound ?? CMTime.zero else {
-            if await currentCaption != nil {
+            if currentCaption != nil {
                 await MainActor.run {
                     currentCaption = nil
                 }

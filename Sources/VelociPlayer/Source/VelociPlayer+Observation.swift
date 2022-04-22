@@ -12,42 +12,38 @@ import Combine
 
 extension VelociPlayer {
     // MARK: - Player Observation
-    internal func onPlayerTimeChanged(time: CMTime) async {
-        await MainActor.run {
-            self.progress = time.seconds / duration.seconds
-            self.time = time
+    internal func onPlayerTimeChanged(time: CMTime) {
+        self.progress = time.seconds / duration.seconds
+        self.time = time
+        Task.detached {
+            await self.updateCaptions(time: time)
         }
-        await updateCaptions(time: time)
     }
     
-    internal func onPlayerTimeControlled() async {
-        await MainActor.run {
-            switch self.timeControlStatus {
-            case .paused:
-                self.isPaused = true
-                self.isBuffering = false
-            case .playing:
-                self.isPaused = false
-                self.isBuffering = false
-            case .waitingToPlayAtSpecifiedRate:
-                self.isPaused = false
-                self.isBuffering = true
-            default:
-                break
-            }
+    internal func onPlayerTimeControlled() {
+        switch self.timeControlStatus {
+        case .paused:
+            self.isPaused = true
+            self.isBuffering = false
+        case .playing:
+            self.isPaused = false
+            self.isBuffering = false
+        case .waitingToPlayAtSpecifiedRate:
+            self.isPaused = false
+            self.isBuffering = true
+        @unknown default:
+            break
         }
         
-        await updateNowPlayingForSeeking()
+        updateNowPlayingForSeeking()
     }
     
-    internal func statusChanged() async {
+    internal func statusChanged() {
         switch self.status {
         case .readyToPlay:
-            await MainActor.run {
-                prepareForPlayback()
-            }
+            prepareForPlayback()
         case .unknown, .failed:
-            break
+            currentError = .unableToBuffer
         @unknown default:
             break
         }
@@ -58,26 +54,20 @@ extension VelociPlayer {
             forInterval: CMTime(seconds: 0.1, preferredTimescale: 10_000),
             queue: .main
         ) { [weak self] time in
-            Task { [weak self] in
-                await self?.onPlayerTimeChanged(time: time)
-            }
+            self?.onPlayerTimeChanged(time: time)
         }
         
         self.publisher(for: \.timeControlStatus)
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] time in
-                Task { [weak self] in
-                    await self?.onPlayerTimeControlled()
-                }
+                self?.onPlayerTimeControlled()
             }
             .store(in: &subscribers)
         
         NotificationCenter.default.publisher(for: .AVPlayerItemDidPlayToEndTime, object: nil)
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
-                Task { [weak self] in
-                    await MainActor.run { [weak self] in
-                        self?.progress = 1
-                    }
-                }
+                self?.progress = 1
             }
             .store(in: &subscribers)
     }
@@ -90,45 +80,41 @@ extension VelociPlayer {
         self.replaceCurrentItem(with: playerItem)
         
         playerItem.publisher(for: \.isPlaybackBufferEmpty)
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] isPlaybackBufferEmpty in
-                Task { [weak self] in
-                    if isPlaybackBufferEmpty {
-                        await self?.bufferStatusChanged(to: .empty)
-                    }
+                if isPlaybackBufferEmpty {
+                    self?.bufferStatusChanged(to: .empty)
                 }
             }
             .store(in: &subscribers)
         
         playerItem.publisher(for: \.isPlaybackLikelyToKeepUp)
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] isPlaybackLikelyToKeepUp in
-                Task { [weak self] in
-                    if isPlaybackLikelyToKeepUp {
-                        await self?.bufferStatusChanged(to: .likelyToKeepUp)
-                    }
+                if isPlaybackLikelyToKeepUp {
+                    self?.bufferStatusChanged(to: .likelyToKeepUp)
                 }
             }
             .store(in: &subscribers)
         
         playerItem.publisher(for: \.isPlaybackBufferFull)
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] isPlaybackBufferFull in
-                Task { [weak self] in
-                    if isPlaybackBufferFull {
-                        await self?.bufferStatusChanged(to: .full)
-                    }
+                if isPlaybackBufferFull {
+                    self?.bufferStatusChanged(to: .full)
                 }
             }
             .store(in: &subscribers)
         
         playerItem.publisher(for: \.loadedTimeRanges)
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] timeRanges in
-                Task { [weak self] in
-                    await self?.updateBufferTime(timeRanges: timeRanges)
-                }
+                self?.updateBufferTime(timeRanges: timeRanges)
             }
             .store(in: &subscribers)
         
-        Task {
-            await updateCurrentItemDuration()
+        Task.detached {
+            await self.updateCurrentItemDuration()
         }
     }
 }

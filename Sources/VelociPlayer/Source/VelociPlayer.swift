@@ -10,39 +10,35 @@ import AVFoundation
 import MediaPlayer
 import Combine
 
+@MainActor
 public class VelociPlayer: AVPlayer, ObservableObject {
     // MARK: - Variables
     /// The progress of the player: Ranges from 0 to 1.
-    @Published @MainActor
-    public internal(set) var progress = 0.0
+    @Published public internal(set) var progress = 0.0
     
     /// The playback time of the current item.
-    @Published @MainActor
-    public internal(set) var time = CMTime(seconds: 0, preferredTimescale: 1)
+    @Published public internal(set) var time = CMTime(seconds: 0, preferredTimescale: 1)
     
     /// Indicates if playback is currently paused.
-    @Published @MainActor
-    public internal(set) var isPaused = true
+    @Published public internal(set) var isPaused = true
     
     /// Indicates if the player is currently loading content.
-    @Published @MainActor
-    public internal(set) var isBuffering = false
+    @Published public internal(set) var isBuffering = false
     
     /// The furthest point of the current item that is currently buffered.
-    @Published @MainActor
-    public internal(set) var bufferTime = CMTime(seconds: 0, preferredTimescale: 1)
+    @Published public internal(set) var bufferTime = CMTime(seconds: 0, preferredTimescale: 1)
     
     /// The furthest point of the current item that is currently buffered as a percentage: Ranges from 0 to 1.
-    @Published @MainActor
-    public internal(set) var bufferProgress = 0.0
+    @Published public internal(set) var bufferProgress = 0.0
     
     /// The total length of the currently playing item.
-    @Published @MainActor
-    public internal(set) var duration = CMTime(seconds: 0, preferredTimescale: 1)
+    @Published public internal(set) var duration = CMTime(seconds: 0, preferredTimescale: 1)
     
     /// The caption that should currently be displayed.
-    @Published @MainActor
-    public internal(set) var currentCaption: Caption?
+    @Published public internal(set) var currentCaption: Caption?
+    
+    /// An error property that updates whenever the player encounters an error
+    @Published public internal(set) var currentError: VelociPlayerError?
     
     /// Specifies whether the player should automatically begin playback once the item has finished loading.
     public var autoPlay = false
@@ -122,30 +118,33 @@ public class VelociPlayer: AVPlayer, ObservableObject {
         self.autoPlay = autoPlay
         self.mediaURL = mediaURL
         self.publisher(for: \.status)
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
-                Task { [weak self] in
-                    await self?.statusChanged()
-                }
+                self?.statusChanged()
             }
             .store(in: &subscribers)
         prepareNewPlayerItem()
     }
     
     deinit {
-        stop()
+        Task { @MainActor in
+            stop()
+        }
     }
     
-    @MainActor
     internal func prepareForPlayback() {
         self.isBuffering = true
-        Task {
-            await updateCurrentItemDuration()
+        Task.detached {
+            let isLoaded = await self.preroll(atRate: 1.0)
             
-            let isLoaded = await preroll(atRate: 1.0)
             await MainActor.run {
-                self.isBuffering = !isLoaded
-                if autoPlay {
-                    self.play()
+                if isLoaded {
+                    self.isBuffering = true
+                    if self.autoPlay {
+                        self.play()
+                    }
+                } else {
+                    self.currentError = .unableToBuffer
                 }
             }
         }
@@ -155,9 +154,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
         await currentItem?.asset.loadValues(forKeys: ["duration"])
         
         if let duration = currentItem?.asset.duration {
-            await MainActor.run {
-                self.duration = duration
-            }
+            self.duration = duration
         }
     }
     
