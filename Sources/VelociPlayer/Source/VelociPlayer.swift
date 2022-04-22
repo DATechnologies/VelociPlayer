@@ -17,7 +17,7 @@ public typealias VPTime = CMTime
 public class VelociPlayer: AVPlayer, ObservableObject {
     
     // MARK: - Variables
-    /// The progress of the player: Ranges from 0 to 1.
+    /// The playback progress of the current item: Ranges from 0 to 1.
     @Published public internal(set) var progress = 0.0
     
     /// The playback time of the current item.
