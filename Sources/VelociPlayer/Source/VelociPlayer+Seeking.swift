@@ -14,7 +14,7 @@ extension VelociPlayer {
     // MARK: - Seeking
     public func seek(toPercent percent: Double) {
         Task.detached {
-            await seek(toPercent: percent)
+            await self.seek(toPercent: percent)
         }
     }
     
@@ -26,7 +26,7 @@ extension VelociPlayer {
     
     public func seek(to seconds: TimeInterval) {
         Task.detached {
-            await seek(to: seconds)
+            await self.seek(to: seconds)
         }
     }
     

@@ -146,6 +146,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
                 await MainActor.run {
                     self.currentError = .unableToBuffer
                 }
+                return
             }
             
             if let startTime = await self.startTime {
