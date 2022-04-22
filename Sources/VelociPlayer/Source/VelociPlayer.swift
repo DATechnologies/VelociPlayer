@@ -43,6 +43,8 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     /// Specifies whether the player should automatically begin playback once the item has finished loading.
     public var autoPlay = false
     
+    public var startTime: CMTime?
+    
     /// Determines how many seconds the `rewind` and `skipForward` commands should skip. The default is `10.0`.
     public var seekInterval = 10.0 {
         didSet {
@@ -112,7 +114,11 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     }
     
     // MARK: - Initialization
-    public init(autoPlay: Bool = false, mediaURL: URL? = nil) {
+    public init(
+        autoPlay: Bool = false,
+        mediaURL: URL? = nil,
+        startTime: CMTime? = nil
+    ) {
         super.init()
         volume = 1.0
         self.autoPlay = autoPlay
@@ -136,15 +142,20 @@ public class VelociPlayer: AVPlayer, ObservableObject {
         self.isBuffering = true
         Task.detached {
             let isLoaded = await self.preroll(atRate: 1.0)
+            guard isLoaded else {
+                await MainActor.run {
+                    self.currentError = .unableToBuffer
+                }
+            }
+            
+            if let startTime = await self.startTime {
+               await self.seek(to: startTime)
+            }
             
             await MainActor.run {
-                if isLoaded {
-                    self.isBuffering = true
-                    if self.autoPlay {
-                        self.play()
-                    }
-                } else {
-                    self.currentError = .unableToBuffer
+                self.isBuffering = true
+                if self.autoPlay {
+                    self.play()
                 }
             }
         }

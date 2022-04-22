@@ -13,7 +13,7 @@ import Combine
 extension VelociPlayer {
     // MARK: - Seeking
     public func seek(toPercent percent: Double) {
-        Task {
+        Task.detached {
             await seek(toPercent: percent)
         }
     }
@@ -25,7 +25,7 @@ extension VelociPlayer {
     }
     
     public func seek(to seconds: TimeInterval) {
-        Task {
+        Task.detached {
             await seek(to: seconds)
         }
     }
@@ -36,7 +36,7 @@ extension VelociPlayer {
     }
     
     override public func seek(to time: CMTime) {
-        Task {
+        Task.detached {
             await self.seek(to: time)
         }
     }
@@ -53,7 +53,7 @@ extension VelociPlayer {
         toleranceBefore: CMTime,
         toleranceAfter: CMTime
     ) {
-        Task {
+        Task.detached {
             await self.seek(
                 to: time,
                 toleranceBefore: toleranceBefore,
@@ -78,7 +78,7 @@ extension VelociPlayer {
     }
     
     override public func seek(to date: Date) {
-        Task {
+        Task.detached {
             await self.seek(to: date)
         }
     }
