@@ -105,10 +105,12 @@ public class VelociPlayer: AVPlayer, ObservableObject {
         }
     }
     
+    /// An array of all decoded captions that can be displayed for the current item.
+    public var allCaptions: [Caption]?
+    
     internal var timeObserver: Any?
     internal var subscribers = [AnyCancellable]()
     internal var commandTargets = [MPRemoteCommand: Any]()
-    internal var allCaptions: [Caption]?
     
     internal var nowPlayingInfo: [String: Any]? {
         didSet {
