@@ -93,7 +93,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     /// The source URL of the media file
     public var mediaURL: URL? {
         didSet {
-            prepareNewPlayerItem()
+            mediaURLChanged()
         }
     }
     
@@ -105,10 +105,12 @@ public class VelociPlayer: AVPlayer, ObservableObject {
         }
     }
     
+    /// An array of all decoded captions that can be displayed for the current item.
+    public var allCaptions: [Caption]?
+    
     internal var timeObserver: Any?
     internal var subscribers = [AnyCancellable]()
     internal var commandTargets = [MPRemoteCommand: Any]()
-    internal var allCaptions: [Caption]?
     
     internal var nowPlayingInfo: [String: Any]? {
         didSet {
@@ -129,13 +131,22 @@ public class VelociPlayer: AVPlayer, ObservableObject {
         self.autoPlay = autoPlay
         self.mediaURL = mediaURL
         self.startTime = startTime
+        
         self.publisher(for: \.status)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 self?.statusChanged()
             }
             .store(in: &subscribers)
-        prepareNewPlayerItem()
+        
+        self.publisher(for: \.currentItem)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.prepareNewPlayerItem()
+            }
+            .store(in: &subscribers)
+        
+        mediaURLChanged()
     }
     
     internal func prepareForPlayback() {

@@ -6,5 +6,5 @@
   
 */
 
-"INVALID_SRT_ERROR_DESCRIPTION" = "Unable to parse the SRT string/file provided to VelociPlayer"
-"UNABLE_TO_BUFFER_ERROR_DESCRIPTION" = "An error occurred while buffering the current item"
+"INVALID_SRT_ERROR_DESCRIPTION" = "Unable to parse the SRT string/file provided to VelociPlayer";
+"UNABLE_TO_BUFFER_ERROR_DESCRIPTION" = "An error occurred while buffering the current item";

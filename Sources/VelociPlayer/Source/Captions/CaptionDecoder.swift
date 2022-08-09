@@ -8,7 +8,7 @@
 import Foundation
 import CoreMedia
 
-internal enum CaptionDecoder {
+public enum CaptionDecoder {
     
     private static let timeFormatter: DateFormatter = {
         let timeFormatter = DateFormatter()
@@ -23,14 +23,18 @@ internal enum CaptionDecoder {
     
     private static let srtRegexPattern = #"(?<id>\d+)\R(?<startTime>\d{2}:\d{2}:\d{2},\d{3}) --> (?<endTime>\d{2}:\d{2}:\d{2},\d{3})\R(?<captionText>\X+?\R\R|\X+?$)"#
     
-    static func getCaptions(for srt: String) -> [Caption] {
+    /// Convert an SRT string to an array of `Caption`
+    /// - Parameter srt: A string representation of an SRT file.
+    /// - Returns: An array of the decoded captions from the provided SRT string.
+    public static func getCaptions(for srt: String) -> [Caption] {
+        let srtString = srt + "\n\n" // Some SRT files end early, so this adds some new lines to allow the regex to pick up the last caption
         var captions = [Caption]()
         
         let regex = try? NSRegularExpression(pattern: srtRegexPattern, options: [.anchorsMatchLines])
-        let srtRange = NSRange(srt.startIndex ..< srt.endIndex, in: srt)
+        let srtRange = NSRange(srtString.startIndex ..< srtString.endIndex, in: srtString)
         
         // Loop over all matches for our regex.
-        regex?.enumerateMatches(in: srt, options: [], range: srtRange) { match, _, _ in
+        regex?.enumerateMatches(in: srtString, options: [], range: srtRange) { match, _, _ in
             guard let match = match else { return }
             var captures = [String: String]()
             
@@ -38,8 +42,8 @@ internal enum CaptionDecoder {
             for captureName in ["id", "startTime", "endTime", "captionText"] {
                 let matchRange = match.range(withName: captureName)
                 
-                if let substringRange = Range(matchRange, in: srt) {
-                    let capture = String(srt[substringRange])
+                if let substringRange = Range(matchRange, in: srtString) {
+                    let capture = String(srtString[substringRange])
                     captures[captureName] = capture
                 }
             }
