@@ -42,8 +42,10 @@ extension VelociPlayer {
         switch self.status {
         case .readyToPlay:
             prepareForPlayback()
-        case .unknown, .failed:
+        case .failed:
             currentError = .unableToBuffer
+        case .unknown:
+            break
         @unknown default:
             break
         }
@@ -65,14 +67,22 @@ extension VelociPlayer {
             .store(in: &subscribers)
     }
     
-    internal func prepareNewPlayerItem() {
-        guard let mediaURL = mediaURL else { return }
+    internal func mediaURLChanged() {
+        let currentURL = ((self.currentItem?.asset) as? AVURLAsset)?.url
+        guard let mediaURL = mediaURL, currentURL != mediaURL else { return }
         
         let playerItem = AVPlayerItem(url: mediaURL)
-        playerItem.preferredForwardBufferDuration = 10
         self.replaceCurrentItem(with: playerItem)
+    }
+    
+    internal func prepareNewPlayerItem() {
+        guard let currentItem = self.currentItem else {
+            return
+        }
+        self.mediaURL = (currentItem.asset as? AVURLAsset)?.url
+        currentItem.preferredForwardBufferDuration = 10
         
-        playerItem.publisher(for: \.isPlaybackBufferEmpty)
+        currentItem.publisher(for: \.isPlaybackBufferEmpty)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] isPlaybackBufferEmpty in
                 if isPlaybackBufferEmpty {
@@ -81,7 +91,7 @@ extension VelociPlayer {
             }
             .store(in: &subscribers)
         
-        playerItem.publisher(for: \.isPlaybackLikelyToKeepUp)
+        currentItem.publisher(for: \.isPlaybackLikelyToKeepUp)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] isPlaybackLikelyToKeepUp in
                 if isPlaybackLikelyToKeepUp {
@@ -90,7 +100,7 @@ extension VelociPlayer {
             }
             .store(in: &subscribers)
         
-        playerItem.publisher(for: \.isPlaybackBufferFull)
+        currentItem.publisher(for: \.isPlaybackBufferFull)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] isPlaybackBufferFull in
                 if isPlaybackBufferFull {
@@ -99,10 +109,22 @@ extension VelociPlayer {
             }
             .store(in: &subscribers)
         
-        playerItem.publisher(for: \.loadedTimeRanges)
+        currentItem.publisher(for: \.loadedTimeRanges)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] timeRanges in
                 self?.updateBufferTime(timeRanges: timeRanges)
+            }
+            .store(in: &subscribers)
+        
+        currentItem.publisher(for: \.status)
+            .receive(on: DispatchQueue.main)
+            .sink { status in
+                switch status {
+                case .failed:
+                    self.currentError = .unableToBuffer
+                default:
+                    break
+                }
             }
             .store(in: &subscribers)
         
