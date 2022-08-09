@@ -23,6 +23,9 @@ public enum CaptionDecoder {
     
     private static let srtRegexPattern = #"(?<id>\d+)\R(?<startTime>\d{2}:\d{2}:\d{2},\d{3}) --> (?<endTime>\d{2}:\d{2}:\d{2},\d{3})\R(?<captionText>\X+?\R\R|\X+?$)"#
     
+    /// Convert an SRT string to an array of `Caption`
+    /// - Parameter srt: A string representation of an SRT file.
+    /// - Returns: An array of the decoded captions from the provided SRT string.
     public static func getCaptions(for srt: String) -> [Caption] {
         let srtString = srt + "\n\n" // Some SRT files end early, so this adds some new lines to allow the regex to pick up the last caption
         var captions = [Caption]()
