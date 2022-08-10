@@ -44,7 +44,7 @@ extension VelociPlayer {
     @discardableResult
     override public func seek(to time: VPTime) async -> Bool {
         let completed = await super.seek(to: time)
-        updateNowPlayingForSeeking()
+        await updateNowPlayingForSeeking()
         return completed
     }
     
@@ -73,7 +73,7 @@ extension VelociPlayer {
             toleranceBefore: toleranceBefore,
             toleranceAfter: toleranceAfter
         )
-        updateNowPlayingForSeeking()
+        await updateNowPlayingForSeeking()
         return completed
     }
     
@@ -86,7 +86,7 @@ extension VelociPlayer {
     @discardableResult
     override public func seek(to date: Date) async -> Bool {
         let completed = await super.seek(to: date)
-        updateNowPlayingForSeeking()
+        await updateNowPlayingForSeeking()
         return completed
     }
 }
