@@ -110,6 +110,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     
     internal var timeObserver: Any?
     internal var subscribers = [AnyCancellable]()
+    internal var currentItemSubscribers = [AnyCancellable]()
     internal var commandTargets = [MPRemoteCommand: Any]()
     
     internal var nowPlayingInfo: [String: Any]? {

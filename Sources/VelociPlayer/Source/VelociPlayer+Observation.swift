@@ -82,6 +82,7 @@ extension VelociPlayer {
         self.mediaURL = (currentItem.asset as? AVURLAsset)?.url
         currentItem.preferredForwardBufferDuration = 10
         
+        self.currentItemSubscribers = []
         currentItem.publisher(for: \.isPlaybackBufferEmpty)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] isPlaybackBufferEmpty in
@@ -89,7 +90,7 @@ extension VelociPlayer {
                     self?.bufferStatusChanged(to: .empty)
                 }
             }
-            .store(in: &subscribers)
+            .store(in: &currentItemSubscribers)
         
         currentItem.publisher(for: \.isPlaybackLikelyToKeepUp)
             .receive(on: DispatchQueue.main)
@@ -98,7 +99,7 @@ extension VelociPlayer {
                     self?.bufferStatusChanged(to: .likelyToKeepUp)
                 }
             }
-            .store(in: &subscribers)
+            .store(in: &currentItemSubscribers)
         
         currentItem.publisher(for: \.isPlaybackBufferFull)
             .receive(on: DispatchQueue.main)
@@ -107,14 +108,14 @@ extension VelociPlayer {
                     self?.bufferStatusChanged(to: .full)
                 }
             }
-            .store(in: &subscribers)
+            .store(in: &currentItemSubscribers)
         
         currentItem.publisher(for: \.loadedTimeRanges)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] timeRanges in
                 self?.updateBufferTime(timeRanges: timeRanges)
             }
-            .store(in: &subscribers)
+            .store(in: &currentItemSubscribers)
         
         currentItem.publisher(for: \.status)
             .receive(on: DispatchQueue.main)
@@ -126,7 +127,7 @@ extension VelociPlayer {
                     break
                 }
             }
-            .store(in: &subscribers)
+            .store(in: &currentItemSubscribers)
         
         Task.detached {
             await self.updateCurrentItemDuration()
