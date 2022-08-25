@@ -51,6 +51,7 @@ extension VelociPlayer {
         }
         
         subscribers.removeAll()
+        currentItemSubscribers.removeAll()
         
         self.displayInSystemPlayer = false
         self.pause()
