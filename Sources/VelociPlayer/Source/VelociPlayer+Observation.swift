@@ -76,13 +76,13 @@ extension VelociPlayer {
     }
     
     internal func prepareNewPlayerItem() {
+        self.currentItemSubscribers = []
         guard let currentItem = self.currentItem else {
             return
         }
         self.mediaURL = (currentItem.asset as? AVURLAsset)?.url
         currentItem.preferredForwardBufferDuration = 10
         
-        self.currentItemSubscribers = []
         currentItem.publisher(for: \.isPlaybackBufferEmpty)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] isPlaybackBufferEmpty in
