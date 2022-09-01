@@ -13,11 +13,16 @@ import Combine
 extension VelociPlayer {
     // MARK: - Player Observation
     internal func onPlayerTimeChanged(time: VPTime) {
-        self.progress = time.seconds / duration.seconds
-        self.time = time
         Task.detached {
             await self.updateCaptions(time: time)
         }
+        guard !time.seconds.isNaN && !duration.seconds.isNaN && !duration.seconds.isZero else {
+            self.progress = 0
+            self.time = CMTime(seconds: 0, preferredTimescale: 10_000)
+            return
+        }
+        self.progress = time.seconds / duration.seconds
+        self.time = time
     }
     
     internal func onPlayerTimeControlled() {

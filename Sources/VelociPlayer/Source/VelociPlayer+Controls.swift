@@ -19,7 +19,13 @@ extension VelociPlayer {
             startObservingPlayer()
             setAVCategory()
         }
+        self.autoPlay = true
         super.play()
+    }
+    
+    public override func pause() {
+        self.autoPlay = false
+        super.pause()
     }
     
     /// Rewind the player based on the `seekInterval`
