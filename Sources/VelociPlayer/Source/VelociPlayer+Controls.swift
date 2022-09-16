@@ -68,4 +68,16 @@ extension VelociPlayer {
         }
         #endif
     }
+    
+    
+    /// Attempt to reload the current item
+    public func reload() {
+        self.currentError = nil
+        guard let currentItem = self.currentItem else {
+            self.currentError = .unableToBuffer
+            return
+        }
+        self.mediaURL = nil
+        self.mediaURL = (currentItem.asset as? AVURLAsset)?.url
+    }
 }

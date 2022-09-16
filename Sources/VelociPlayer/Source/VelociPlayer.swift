@@ -151,6 +151,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     }
     
     internal func prepareForPlayback() {
+        self.currentError = nil
         self.isBuffering = true
         Task.detached {
             if let startTime = await self.startTime {
