@@ -21,7 +21,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     @Published public internal(set) var progress = 0.0
     
     /// The playback time of the current item.
-    @Published public internal(set) var time = VPTime(seconds: 0, preferredTimescale: 1)
+    @Published public internal(set) var time = VPTime(seconds: 0, preferredTimescale: 10_000)
     
     /// Indicates if playback is currently paused.
     @Published public internal(set) var isPaused = true
@@ -30,13 +30,13 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     @Published public internal(set) var isBuffering = false
     
     /// The furthest point of the current item that is currently buffered.
-    @Published public internal(set) var bufferTime = VPTime(seconds: 0, preferredTimescale: 1)
+    @Published public internal(set) var bufferTime = VPTime(seconds: 0, preferredTimescale: 10_000)
     
     /// The furthest point of the current item that is currently buffered as a percentage: Ranges from 0 to 1.
     @Published public internal(set) var bufferProgress = 0.0
     
     /// The total length of the currently playing item.
-    @Published public internal(set) var duration = VPTime(seconds: 0, preferredTimescale: 1)
+    @Published public internal(set) var duration = VPTime(seconds: 0, preferredTimescale: 10_000)
     
     /// The caption that should currently be displayed.
     @Published public internal(set) var currentCaption: Caption?
