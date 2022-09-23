@@ -70,6 +70,15 @@ extension VelociPlayer {
                 self?.onPlayerTimeControlled()
             }
             .store(in: &subscribers)
+        
+        NotificationCenter.default.publisher(for: .AVPlayerItemDidPlayToEndTime, object: nil)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] notification in
+                if (notification.object as? AVPlayerItem == self?.currentItem) && self?.progress != 1 {
+                    self?.progress = 1
+                }
+            }
+            .store(in: &subscribers)
     }
     
     internal func mediaURLChanged() {
