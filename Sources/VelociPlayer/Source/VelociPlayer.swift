@@ -158,13 +158,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
                await self.seek(to: startTime)
             }
             
-            let isLoaded = await self.preroll(atRate: 1.0)
-            guard isLoaded else {
-                await MainActor.run {
-                    self.currentError = .unableToBuffer
-                }
-                return
-            }
+            await self.preroll(atRate: 1.0)
             
             await MainActor.run {
                 self.isBuffering = true
