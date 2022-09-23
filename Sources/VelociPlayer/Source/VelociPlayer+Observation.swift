@@ -18,7 +18,7 @@ extension VelociPlayer {
         }
         guard !time.seconds.isNaN && !duration.seconds.isNaN && !duration.seconds.isZero else {
             self.progress = 0
-            self.time = CMTime(seconds: 0, preferredTimescale: 10_000)
+            self.time = VPTime(seconds: 0, preferredTimescale: 10_000)
             return
         }
         self.progress = time.seconds / duration.seconds
@@ -68,6 +68,17 @@ extension VelociPlayer {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] time in
                 self?.onPlayerTimeControlled()
+            }
+            .store(in: &subscribers)
+        
+        NotificationCenter.default.publisher(for: .AVPlayerItemDidPlayToEndTime, object: nil)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] notification in
+                guard let self = self else { return }
+                if (notification.object as? AVPlayerItem == self.currentItem) && self.progress != 1 {
+                    self.duration = self.time
+                    self.progress = 1
+                }
             }
             .store(in: &subscribers)
     }
