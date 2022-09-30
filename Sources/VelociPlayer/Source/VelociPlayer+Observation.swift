@@ -76,7 +76,7 @@ extension VelociPlayer {
             .sink { [weak self] notification in
                 guard let self = self else { return }
                 if (notification.object as? AVPlayerItem == self.currentItem) && self.progress != 1 {
-                    self.duration = self.time
+                    self.time = self.duration
                     self.progress = 1
                 }
             }
