@@ -17,6 +17,6 @@ class ExampleViewModel: ObservableObject {
     var player: VelociPlayer
     
     init() {
-        player = VelociPlayer(autoPlay: true, mediaURL: URL("https://rapptrlabs.com/my-video-url"))
+        player = VelociPlayer(autoPlay: true, mediaURL: URL(string: "https://rapptrlabs.com/my-video-url"))
     }
 }

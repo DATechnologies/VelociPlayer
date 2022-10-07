@@ -13,7 +13,7 @@ class VideoPlayerViewModel: ObservableObject {
     @Published var currentCaption: Caption?
     
     init() {
-        player = VelociPlayer(autoPlay: true, mediaURL: URL("https://rapptrlabs.com/my-video-url"))
+        player = VelociPlayer(autoPlay: true, mediaURL: URL(string: "https://rapptrlabs.com/my-video-url"))
         beginPlayerObservation()
         Task {
             guard let captionURL = URL("https://rapptrlabs.com/my-video-caption-url"),
@@ -50,7 +50,7 @@ struct VideoPlayerView: View {
                     Text(caption.text)
                 }
                 
-                Text(String(format: "%2f", viewModel.progress * 100) + "%")
+                Text(String(format: "%.2f", viewModel.progress * 100) + "%")
                 
                 if viewModel.isBuffering {
                     ProgressView()

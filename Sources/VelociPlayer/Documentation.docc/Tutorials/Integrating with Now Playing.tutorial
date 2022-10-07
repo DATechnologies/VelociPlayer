@@ -4,6 +4,31 @@
         Luckily, VelociPlayer makes this a one line integration!
     }
     
+    @Section(title: "Enabling the Background Audio Capability") {
+        @ContentAndMedia {
+            Before you're ready to play audio outside of your app, you need to enable
+            the background audio capability.
+        }
+        
+        @Steps {
+            @Step {
+                Navigate to your project settings, and then the "Signing & Capabilities" tab.
+                
+                Next, click on "+ Capability" in the top left and search for "Background".
+                
+                Finally, add the "Background Modes" Capability to the project.
+                
+                @Image(file: background-modes-capabilities.png, alt: "An image of the background modes capability.")
+            }
+            
+            @Step {
+                Once added to your project, make sure to check "Audio, AirPlay, and Picture in Picture".
+                
+                @Image(file: background-modes-selected.png, alt: "An image of the \"Audio, AirPlay, and Picture in Picture\" checkbox selected for the Background Modes capability.")
+            }
+        }
+    }
+    
     @Section(title: "Setting Up Now Playing Information") {
         @ContentAndMedia {
             VelociPlayer allows for up to 4 pieces of information to display in the

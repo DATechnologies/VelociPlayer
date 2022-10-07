@@ -14,7 +14,7 @@ class ExampleViewModel: ObservableObject {
     @Published var showCompletionMessage = false
     
     init() {
-        player = VelociPlayer(autoPlay: true, mediaURL: URL("https://rapptrlabs.com/my-video-url"))
+        player = VelociPlayer(autoPlay: true, mediaURL: URL(string: "https://rapptrlabs.com/my-video-url"))
         player.seekInterval = 15
         beginPlayerObservation()
     }

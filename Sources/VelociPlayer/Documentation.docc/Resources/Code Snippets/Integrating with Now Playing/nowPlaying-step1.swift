@@ -12,7 +12,7 @@ class AudioPlayerViewModel: ObservableObject {
     @Published var progress = 0.0
     
     init() {
-        player = VelociPlayer(autoPlay: true, mediaURL: URL("https://rapptrlabs.com/my-video-url"))
+        player = VelociPlayer(autoPlay: true, mediaURL: URL(string: "https://rapptrlabs.com/my-video-url"))
         beginPlayerObservation()
     }
     
@@ -20,6 +20,10 @@ class AudioPlayerViewModel: ObservableObject {
         player.$isPaused.assign(to: &$isPaused)
         player.$isBuffering.assign(to: &$isBuffering)
         player.$progress.assign(to: &$progress)
+    }
+    
+    func togglePlayback() {
+        player.togglePlayback()
     }
 }
 
@@ -30,7 +34,7 @@ struct AudioPlayerView: View {
     
     var body: some View {
         VStack {
-            Text(String(format: "%2f", viewModel.progress * 100) + "%")
+            Text(String(format: "%.2f", viewModel.progress * 100) + "%")
             
             if viewModel.isBuffering {
                 ProgressView()

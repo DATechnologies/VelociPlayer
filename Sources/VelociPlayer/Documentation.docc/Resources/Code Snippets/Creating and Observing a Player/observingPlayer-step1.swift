@@ -21,6 +21,6 @@ class ExampleViewModel: ObservableObject {
     @Published var progress = 0.0
     
     init() {
-        player = VelociPlayer(autoPlay: true, mediaURL: URL("https://rapptrlabs.com/my-video-url"))
+        player = VelociPlayer(autoPlay: true, mediaURL: URL(string: "https://rapptrlabs.com/my-video-url"))
     }
 }

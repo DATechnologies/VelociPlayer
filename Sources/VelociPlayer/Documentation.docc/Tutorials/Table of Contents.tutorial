@@ -34,6 +34,8 @@
         @Chapter(name: "Integrating with Now Playing") {
             Learn how to show your content in the system's Now Playing controller.
             
+            @Image(source: velociraptor-now-playing.jpg, alt: "An image of a velociraptor in a suit, holding a microphone, giving the news. There is a caption at the bottom reading \"Today on VelociPlayer News...\"")
+            
             @TutorialReference(tutorial: "doc:Integrating-with-Now-Playing")
         }
         
