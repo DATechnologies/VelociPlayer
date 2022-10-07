@@ -1,0 +1,48 @@
+@Tutorials(name: "VelociPlayer") {
+    @Intro(title: "Integrating VelociPlayer") {
+        Welcome to VelociPlayer! In these tutorials, you'll learn how
+        to use VelociPlayer to add an audio or video player to your app
+        
+        @Image(source: "velociraptor-wearing-headphones.png", alt: "An image of a velociraptor wearing headphones")
+    }
+    
+    @Volume(name: "Getting Started") {
+    
+        Learn the basics of implementing VelociPlayer into your app.
+    
+        @Chapter(name: "Creating and Observing a Player") {
+            Your first steps into starting playback.
+            
+            @Image(source: velociraptor-observation.png, alt: "An image of a velociraptor holding a magnifying glass")
+            
+            @TutorialReference(tutorial: "doc:Creating-and-Observing-a-Player")
+        }
+        
+        @Chapter(name: "Controlling Playback") {
+            Start, stop, seek, play, and pause playback.
+            
+            @Image(source: velociraptor-dj.png, alt: "An image of a velociraptor DJing while wearing headphones")
+            
+            @TutorialReference(tutorial: "doc:Controlling-Playback")
+        }
+    }
+    
+    @Volume(name: "Extending Functionality") {
+        
+        Add extra features in a matter of minutes.
+        
+        @Chapter(name: "Integrating with Now Playing") {
+            Learn how to show your content in the system's Now Playing controller.
+            
+            @TutorialReference(tutorial: "doc:Integrating-with-Now-Playing")
+        }
+        
+        @Chapter(name: "Displaying Captions") {
+            Add captions that sync with your videos.
+            
+            @Image(source: velociraptor-news.png, alt: "An image of a velociraptor in a suit, holding a microphone, giving the news. There is a caption at the bottom reading \"Today on VelociPlayer News...\"")
+            
+            @TutorialReference(tutorial: "doc:Displaying-Captions")
+        }
+    }
+}

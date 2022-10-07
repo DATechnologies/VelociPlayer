@@ -1,0 +1,62 @@
+@Tutorial(time: 5) {
+    @Intro(title: "Integrating with Now Playing") {
+        For audio players, integrating with the system Now Playing API is a _must_ for users.
+        Luckily, VelociPlayer makes this a one line integration!
+    }
+    
+    @Section(title: "Setting Up Now Playing Information") {
+        @ContentAndMedia {
+            VelociPlayer allows for up to 4 pieces of information to display in the
+            system player:
+            * Track Name
+            * Track Artist Name
+            * Track Album Name
+            * Album Artwork
+            
+            You can set all of these in one function call in VelociPlayer. If you set
+            any of these properties to `nil`, then they will not appear in the system
+            player.
+        }
+        
+        @Steps {
+            @Step {
+                We'll start with a standard audio player that has integrated VelociPlayer.
+                
+                @Code(name: "AudioPlayerView.swift", file: nowPlaying-step1.swift)
+            }
+            
+            @Step {
+                Next, we can call VelociPlayer's `setNowPlayingInfo` method to set any details about
+                the currently playing item that are relevant.
+                
+                @Code(name: "AudioPlayerView.swift", file: nowPlaying-step2.swift)
+            }
+            
+            @Step {
+                To set an image for the album artwork, you must provide an instance of ``VelociPlayer/NowPlayingImage``.
+                This is a platform specific type alias. On iOS, this is a UIImage. You can either include it
+                in the same `setNowPlayingInfo` call as the rest of the information, or, if you need to download
+                the image first, you can set it separately with ``VelociPlayer/VelociPlayer/setNowPlayingImage(_:)``.
+                
+                @Code(name: "AudioPlayerView.swift", file: nowPlaying-step3.swift)
+            }
+        }
+    }
+        
+    @Section(title: "Configuring the Now Playing controls") {
+        @ContentAndMedia {
+            VelociPlayer allows you to customize the controls that are available in the system
+            player using ``VelociPlayer/NowPlayingConfiguration``.
+        }
+        
+        @Steps {
+            @Step {
+                To set the enabled controls in the system player, simply create a configuration 
+                and then set it on the player. You can customize whether to allow scrubbing and set 
+                or disable the previous and next buttons.
+                
+                @Code(name: "AudioPlayerView.swift", file: nowPlayingConfiguration-step1.swift, previousFile: nowPlaying-step3.swift)
+            }
+        }
+    }
+}

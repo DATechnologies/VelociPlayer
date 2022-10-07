@@ -1,0 +1,88 @@
+@Tutorial(time: 5) {
+    @Intro(title: "Creating and Observing a Player") {
+        In this tutorial, you'll learn the first steps into creating a player and beginning playback.
+    }
+    
+    @Section(title: "Creating a Player") {
+        
+        @ContentAndMedia {
+            Initialize an instance of VelociPlayer to handle audio/video playback.
+        }
+        
+        @Steps {
+            @Step {
+                Start by creating a view. For this example, we'll use a SwiftUI view with a view model 
+                that will manage the player.
+                
+                @Code(name: "ExampleView.swift", file: creatingPlayer-step1.swift)
+            }
+            
+            @Step {
+                Next, we'll add our player. VelociPlayer has a few options to initialize the player.
+                Upon initialization, we can specify that we want this media to auto-play when it's ready,
+                and we can specify the URL for the media.
+                
+                @Code(name: "ExampleView.swift", file: creatingPlayer-step2.swift)
+            }
+        }
+    }
+        
+    @Section(title: "Observing the Player") {
+        
+        @ContentAndMedia {
+            Now that the player is initialized, we can observe properties on it using Combine.
+        }
+        
+        @Steps {
+            @Step {
+                We'll start by adding the properties we want to observe as published properties in the view model.
+                For this app, all we care about is the progress (as a percentage), whether playback is paused, and
+                whether the player is currently buffering the media file.
+                
+                @Code(name: "ExampleView.swift", file: observingPlayer-step1.swift, previousFile: creatingPlayer-step2.swift)
+            }
+            
+            @Step {
+                Using the publisher's `assign(to:)` function, we can link VelociPlayer's properties to the properties
+                we created in the view model.
+                
+                @Code(name: "ExampleView.swift", file: observingPlayer-step2.swift)
+            }
+            
+            @Step {
+                Finally, we can create views to display these properties to the user. It's that easy!
+                
+                @Code(name: "ExampleView.swift", file: observingPlayer-step3.swift)
+            }
+        }
+    }
+        
+    @Section(title: "Advanced Observation") {
+        
+        @ContentAndMedia {
+            Sometimes, you need to perform actions at specific points during playback. VelociPlayer and Combine make this a breeze!
+        }
+        
+        @Steps {
+            @Step {
+                Our file is starting to get quite large, so we'll move the view model into it's own file going forward.
+                
+                @Code(name: "ExampleViewModel.swift", file: advancedObservation-viewModel-step1.swift)
+            }
+            
+            @Step {
+                Instead of using `assign(to:)` on `progress`, we can instead insert an intermediary step by using the publisher's
+                `sink` method, and storing the result in a `cancellables` array.
+                
+                @Code(name: "ExampleViewModel.swift", file: advancedObservation-viewModel-step2.swift)
+            }
+            
+            @Step {
+                Now that we have a method that gets called when the progress is updated, we can perform any actions we'd like.
+                A common use case may be to display a completion message once playback ends.
+                
+                @Code(name: "ExampleViewModel.swift", file: advancedObservation-viewModel-step3.swift)
+            }
+        }
+    }
+}

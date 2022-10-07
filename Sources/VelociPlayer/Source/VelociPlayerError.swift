@@ -7,10 +7,14 @@
 
 import Foundation
 
+/// Error codes returned by ``VelociPlayer``.
 public enum VelociPlayerError: LocalizedError {
+    /// An error indicating that the player encountered an error while attempting to continue loading media.
     case unableToBuffer
+    /// An error indicating that the SRT file provided for captions was in the incorrect format and cannot be loaded.
     case invalidSRT
     
+    /// A localized message describing what error occurred.
     public var errorDescription: String? {
         switch self {
         case .unableToBuffer:

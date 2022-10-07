@@ -10,7 +10,7 @@ import CoreMedia
 
 extension VelociPlayer {
     
-    /// Decodes a provided SRT file and prepares VelociPlayer to provide captions through playback.
+    /// Decode a provided SRT file and prepares VelociPlayer to provide captions through playback.
     /// - Parameter srtData: An SRT file represented as `Data`.
     public func setUpCaptions(for srtData: Data) async throws {
         guard let srtString = String(data: srtData, encoding: .utf8) else {
@@ -19,7 +19,7 @@ extension VelociPlayer {
         try await setUpCaptions(for: srtString)
     }
     
-    /// Decodes a provided SRT file and prepares VelociPlayer to provide captions through playback.
+    /// Decode a provided SRT file and prepares VelociPlayer to provide captions through playback.
     /// - Parameter srtString: An SRT file represented as a `String`.
     public func setUpCaptions(for srtString: String) async throws {
         let captions = CaptionDecoder.getCaptions(for: srtString)
@@ -32,7 +32,7 @@ extension VelociPlayer {
         allCaptions = captions
     }
     
-    /// Removes any active captions.
+    /// Remove any active captions.
     public func removeCaptions() {
         currentCaption = nil
         allCaptions = nil

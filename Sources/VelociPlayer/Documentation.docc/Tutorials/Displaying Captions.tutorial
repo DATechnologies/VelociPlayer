@@ -1,0 +1,37 @@
+@Tutorial(time: 5) {
+    @Intro(title: "Displaying Captions") {
+        Adding captions to your videos is a great way to increase the accessibility of your app. 
+        With VelociPlayer, adding captions couldn't be easier.
+    }
+    
+    @Section(title: "Setting up and displaying captions.") {
+        @ContentAndMedia {
+            In order to use VelociPlayer's caption support, you must store captions in a caption SRT file.
+            Once that's done, all you have to do is give the SRT file to VelociPlayer.
+        }
+        
+        @Steps {
+            @Step {
+                We'll start with a simple video player that has already integrated VelociPlayer.
+                
+                @Code(name: "VideoPlayerView.swift", file: displayingCaptions-step1.swift)
+            }
+            
+            @Step {
+                Decoding captions runs asynchronously, so we'll need to make a Task. If the caption
+                file is stored on a server, this is a great place to download it. We can either pass
+                the data directly to VelociPlayer, or we can decode it ourselves and give VelociPlayer
+                the file as a String.
+                
+                @Code(name: "VideoPlayerView.swift", file: displayingCaptions-step2.swift)
+            }
+            
+            @Step {
+                Finally, we just need to subscribe to the publisher for ``VelociPlayer/VelociPlayer/currentCaption`` and display
+                it in our view!
+                
+                @Code(name: "VideoPlayerView.swift", file: displayingCaptions-step3.swift)
+            }
+        }
+    }
+}
