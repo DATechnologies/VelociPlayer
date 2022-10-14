@@ -72,7 +72,7 @@ extension VelociPlayer {
         }
     }
     
-    fileprivate func setUp(command: MPRemoteCommand, handler: @escaping (MPRemoteCommandEvent) -> MPRemoteCommandHandlerStatus) {
+    internal func setUp(command: MPRemoteCommand, handler: @escaping (MPRemoteCommandEvent) -> MPRemoteCommandHandlerStatus) {
         command.isEnabled = true
         if let target = commandTargets[command] {
           command.removeTarget(target)

@@ -33,7 +33,7 @@ extension VelociPlayer {
         }
     }
     
-    enum BufferStatus {
+    internal enum BufferStatus {
         case empty
         case likelyToKeepUp
         case full

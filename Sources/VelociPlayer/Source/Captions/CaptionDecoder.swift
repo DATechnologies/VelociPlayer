@@ -8,6 +8,11 @@
 import Foundation
 import CoreMedia
 
+/// A helper that decodes an SRT file into an array of ``Caption``.
+///
+/// - Note: You should use VelociPlayer's ``VelociPlayer/VelociPlayer/setUpCaptions(for:)-94xgp`` method to
+/// load the captions into the player. Only use `CaptionDecoder` if you are not using VelociPlayer for
+/// playback.
 public enum CaptionDecoder {
     
     private static let timeFormatter: DateFormatter = {
@@ -23,7 +28,7 @@ public enum CaptionDecoder {
     
     private static let srtRegexPattern = #"(?<id>\d+)\R(?<startTime>\d{2}:\d{2}:\d{2},\d{3}) --> (?<endTime>\d{2}:\d{2}:\d{2},\d{3})\R(?<captionText>\X+?\R\R|\X+?$)"#
     
-    /// Convert an SRT string to an array of `Caption`
+    /// Convert an SRT string to an array of ``Caption``
     /// - Parameter srt: A string representation of an SRT file.
     /// - Returns: An array of the decoded captions from the provided SRT string.
     public static func getCaptions(for srt: String) -> [Caption] {

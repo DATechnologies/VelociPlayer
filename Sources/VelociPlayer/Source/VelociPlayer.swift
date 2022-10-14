@@ -13,6 +13,7 @@ import Combine
 // This typealias allows client applications to use this type without importing `CMTime`
 public typealias VPTime = CMTime
 
+/// An audio/video player that makes playback easily to implement, utilizing Combine to subscribe to changes.
 @MainActor
 public class VelociPlayer: AVPlayer, ObservableObject {
     
@@ -38,7 +39,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     /// The total length of the currently playing item.
     @Published public internal(set) var duration = VPTime(seconds: 0, preferredTimescale: 10_000)
     
-    /// The caption that should currently be displayed.
+    /// The caption that should be displayed for the current playback time.
     @Published public internal(set) var currentCaption: Caption?
     
     /// An error property that updates whenever the player encounters an error

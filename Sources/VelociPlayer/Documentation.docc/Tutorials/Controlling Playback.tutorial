@@ -1,0 +1,54 @@
+@Tutorial(time: 5) {
+    @Intro(title: "Controlling Playback") {
+        Once you've created a player, you'll want to give users the ability to control playback. 
+        VelociPlayer makes it easy to change the player's state.
+    }
+    
+    @Section(title: "Basic Controls") {
+        @ContentAndMedia {
+            Implement basic playback controls. 
+        }
+        
+        @Steps {
+            @Step {
+                We'll start by adding play/pause functionality. VelociPlayer has a ``VelociPlayer/VelociPlayer/togglePlayback()``
+                method that plays when playback is paused, and pauses when playback is playing. Separately, we'll
+                want to call this method from the view when the play/pause button is pressed.
+                
+                @Code(name: "ExampleViewModel.swift", file: basicControls-viewModel-step1.swift, previousFile: advancedObservation-viewModel-step3.swift)
+            }
+            
+            @Step {
+                Next, we can add functions for skipping backwards and forwards by 15 seconds. By default, VelociPlayer
+                will skip by 10 seconds, so we'll need to customize the player on initialization.
+                
+                @Code(name: "ExampleViewModel.swift", file: basicControls-viewModel-step2.swift)
+            }
+        }
+    }
+        
+    @Section(title: "Advanced Controls") {
+        @ContentAndMedia {
+            Users often want to be able to select anywhere in a track and continue playback from that point. 
+            We can implement seeking to achieve this functionality.  
+        }
+        
+        @Steps {
+            @Step {
+                In order to seek the player, we must provide either the progress or specific time for the player
+                to seek to. Seeking may take a bit, as the player may need to buffer that portion of the track.
+                For this reason, there is an async version of seek to await the task and perform any other actions
+                after seeking is completed.
+                
+                @Code(name: "ExampleViewModel.swift", file: advancedControls-viewModel-step1.swift, previousFile: basicControls-viewModel-step2.swift)
+            }
+            
+            @Step {
+                Note: It is very important to call `player.stop()` whenever you are finished using the player, or
+                else it may remain in memory after you're finished using it.
+                
+                @Code(name: "ExampleViewModel.swift", file: advancedControls-viewModel-step2.swift)
+            }
+        }
+    }
+}
