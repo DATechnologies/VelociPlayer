@@ -89,6 +89,11 @@ extension VelociPlayer {
         
         let playerItem = AVPlayerItem(url: mediaURL)
         self.replaceCurrentItem(with: playerItem)
+        
+        if timeObserver == nil {
+            startObservingPlayer()
+            setAVCategory()
+        }
     }
     
     internal func prepareNewPlayerItem() {

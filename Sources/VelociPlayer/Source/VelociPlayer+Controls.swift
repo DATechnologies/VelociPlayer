@@ -15,10 +15,6 @@ extension VelociPlayer {
     
     /// Begin playback of the current item
     public override func play() {
-        if timeObserver == nil {
-            startObservingPlayer()
-            setAVCategory()
-        }
         self.autoPlay = true
         super.play()
     }
