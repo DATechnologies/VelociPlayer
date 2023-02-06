@@ -69,6 +69,7 @@ extension VelociPlayer {
     /// - Returns: A boolean indicating whether the seek operation completed.
     @discardableResult
     override public func seek(to time: VPTime) async -> Bool {
+        self.beginPlayerObservationIfNeeded()
         let completed = await super.seek(to: time)
         await updateNowPlayingForSeeking()
         return completed

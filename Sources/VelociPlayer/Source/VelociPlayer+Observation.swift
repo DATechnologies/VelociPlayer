@@ -149,4 +149,11 @@ extension VelociPlayer {
             await self.updateCurrentItemDuration()
         }
     }
+    
+    internal func beginPlayerObservationIfNeeded() {
+        if timeObserver == nil {
+            startObservingPlayer()
+            setAVCategory()
+        }
+    }
 }
