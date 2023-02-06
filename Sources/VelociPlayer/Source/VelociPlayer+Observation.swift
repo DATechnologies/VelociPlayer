@@ -89,11 +89,6 @@ extension VelociPlayer {
         
         let playerItem = AVPlayerItem(url: mediaURL)
         self.replaceCurrentItem(with: playerItem)
-        
-        if timeObserver == nil {
-            startObservingPlayer()
-            setAVCategory()
-        }
     }
     
     internal func prepareNewPlayerItem() {
@@ -152,6 +147,14 @@ extension VelociPlayer {
         
         Task.detached {
             await self.updateCurrentItemDuration()
+        }
+    }
+    
+    internal func observePlayerOnUserInteraction() {
+        if timeObserver == nil {
+            print("observing the player")
+            startObservingPlayer()
+            setAVCategory()
         }
     }
 }
