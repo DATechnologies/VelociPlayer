@@ -15,7 +15,7 @@ extension VelociPlayer {
     
     /// Begin playback of the current item
     public override func play() {
-        self.observePlayerOnUserInteraction()
+        self.beginPlayerObservationIfNeeded()
         self.autoPlay = true
         super.play()
     }

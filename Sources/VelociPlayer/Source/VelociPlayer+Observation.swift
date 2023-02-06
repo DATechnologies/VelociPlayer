@@ -150,7 +150,7 @@ extension VelociPlayer {
         }
     }
     
-    internal func observePlayerOnUserInteraction() {
+    internal func beginPlayerObservationIfNeeded() {
         if timeObserver == nil {
             startObservingPlayer()
             setAVCategory()
