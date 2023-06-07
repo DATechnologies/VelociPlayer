@@ -67,7 +67,7 @@ public class VelociPlayer: AVPlayer, ObservableObject {
     /// Determines whether the player should integrate with the system to allow playback controls from Control Center and the Lock Screen, among other places.
     public var displayInSystemPlayer = false {
         didSet {
-            if displayInSystemPlayer {
+            if displayInSystemPlayer && timeObserver != nil {
                 setUpNowPlayingControls()
             } else {
                 removeFromNowPlaying()

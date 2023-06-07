@@ -154,6 +154,9 @@ extension VelociPlayer {
         if timeObserver == nil {
             startObservingPlayer()
             setAVCategory()
+            if displayInSystemPlayer {
+                setUpNowPlayingControls()
+            }
         }
     }
 }
