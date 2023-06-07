@@ -40,6 +40,7 @@ extension VelociPlayer {
     
     internal func removeFromNowPlaying() {
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+        disableAllCommands()
     }
     
     internal func setUpMainControl() {
@@ -153,8 +154,8 @@ extension VelociPlayer {
     
     internal func disableAllCommands() {
         for (command, target) in commandTargets {
-          command.isEnabled = false
-          command.removeTarget(target)
+            command.isEnabled = false
+            command.removeTarget(target)
         }
     }
     
