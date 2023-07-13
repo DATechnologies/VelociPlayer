@@ -21,7 +21,7 @@ extension VelociPlayer {
             self.time = VPTime(seconds: 0, preferredTimescale: 10_000)
             return
         }
-        self.progress = time.seconds / duration.seconds
+        self.progress = min(time.seconds / duration.seconds, 1)
         self.time = time
     }
     
