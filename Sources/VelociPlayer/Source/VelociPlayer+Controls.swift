@@ -22,6 +22,14 @@ extension VelociPlayer {
         }
     }
     
+    public override func playImmediately(atRate rate: Float) {
+        Task { @MainActor in
+            self.beginPlayerObservationIfNeeded()
+            self.autoPlay = true
+            super.playImmediately(atRate: rate)
+        }
+    }
+    
     /// Pause playback of the current item
     nonisolated public override func pause() {
         Task { @MainActor in
