@@ -14,16 +14,20 @@ extension VelociPlayer {
     // MARK: - Controls
     
     /// Begin playback of the current item
-    public override func play() {
-        self.beginPlayerObservationIfNeeded()
-        self.autoPlay = true
-        super.play()
+    nonisolated public override func play() {
+        Task { @MainActor in
+            self.beginPlayerObservationIfNeeded()
+            self.autoPlay = true
+            super.play()
+        }
     }
     
     /// Pause playback of the current item
-    public override func pause() {
-        self.autoPlay = false
-        super.pause()
+    nonisolated public override func pause() {
+        Task { @MainActor in
+            self.autoPlay = false
+            super.pause()
+        }
     }
     
     /// Rewind the player based on the ``seekInterval``

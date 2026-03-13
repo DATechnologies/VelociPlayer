@@ -61,7 +61,11 @@ extension VelociPlayer {
             forInterval: VPTime(seconds: 0.1, preferredTimescale: 10_000),
             queue: .main
         ) { [weak self] time in
-            self?.onPlayerTimeChanged(time: time)
+            
+            // We are using "queue: .main" so we can assume this closure is on MainActor
+            MainActor.assumeIsolated {
+                self?.onPlayerTimeChanged(time: time)
+            }
         }
         
         self.publisher(for: \.timeControlStatus)
